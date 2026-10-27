@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>MY TVET Dashboard</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+      background: #12121f;
+      color: #f0f0f0;
+      min-height: 100vh;
+    }
+
+    /* ── Header ── */
+    header {
+      background: #1a1a2e;
+      border-bottom: 3px solid #e94560;
+      padding: 28px 40px 22px;
+    }
+    header h1 {
+      font-size: 2rem;
+      font-weight: 800;
+      letter-spacing: 0.04em;
+      color: #ffffff;
+      text-transform: uppercase;
+    }
+    header p {
+      margin-top: 6px;
+      font-size: 0.95rem;
+      color: #a0a8c0;
+    }
+    header p span {
+      color: #e94560;
+      font-weight: 600;
+    }
+
+    /* ── Main wrapper ── */
+    main {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 36px 24px 60px;
+    }
+
+    /* ── Cards Row ── */
+    .cards-row {
+      display: flex;
+      gap: 20px;
+      flex-wrap: wrap;
+      margin-bottom: 32px;
+    }
+    .card {
+      flex: 1 1 240px;
+      border-radius: 14px;
+      padding: 28px 24px;
+      color: #ffffff;
+      box-shadow: 0 4px 24px rgba(0,0,0,0.4);
+      position: relative;
+      overflow: hidden;
+    }
+    .card::before {
+      content: "";
+      position: absolute;
+      top: -30px; right: -30px;
+      width: 110px; height: 110px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.07);
+    }
+    .card--blue   { background: linear-gradient(135deg, #0f3460, #1a6bcc); }
+    .card--orange { background: linear-gradient(135deg, #8b1a2e, #e94560); }
+    .card--green  { background: linear-gradient(135deg, #0b4f3a, #1aad72); }
+
+    .card-label {
+      font-size: 0.75rem;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      opacity: 0.85;
+      margin-bottom: 12px;
+    }
+    .card-number {
+      font-size: 3rem;
+      font-weight: 900;
+      line-height: 1;
+    }
+    .card-sub {
+      margin-top: 8px;
+      font-size: 0.85rem;
+      opacity: 0.8;
+    }
+
+    /* ── Section headings ── */
+    .section-title {
+      font-size: 1rem;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: #a0a8c0;
+      margin-bottom: 16px;
+    }
+
+    /* ── Status Panel ── */
+    .status-panel {
+      background: #1a1a2e;
+      border-radius: 14px;
+      padding: 28px 28px;
+      margin-bottom: 32px;
+      box-shadow: 0 4px 24px rgba(0,0,0,0.3);
+    }
+    .progress-label {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.88rem;
+      color: #a0a8c0;
+      margin-bottom: 8px;
+    }
+    .progress-label strong {
+      color: #f0f0f0;
+    }
+    .progress-track {
+      background: #2a2a45;
+      border-radius: 999px;
+      height: 12px;
+      overflow: hidden;
+      margin-bottom: 24px;
+    }
+    .progress-fill {
+      height: 100%;
+      border-radius: 999px;
+      background: linear-gradient(90deg, #1aad72, #0ff0a0);
+      width: 58%;
+      transition: width 0.6s ease;
+    }
+    .milestones {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .milestone {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      font-size: 0.92rem;
+    }
+    .dot {
+      width: 12px; height: 12px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+    .dot--done     { background: #1aad72; }
+    .dot--progress { background: #f5a623; }
+    .dot--pending  { background: #555575; }
+    .milestone-name { flex: 1; color: #d0d8f0; }
+    .badge {
+      font-size: 0.72rem;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      padding: 3px 10px;
+      border-radius: 999px;
+    }
+    .badge--done     { background: rgba(26,173,114,0.18); color: #1aad72; }
+    .badge--progress { background: rgba(245,166,35,0.18);  color: #f5a623; }
+    .badge--pending  { background: rgba(85,85,117,0.25);   color: #8888aa; }
+
+    /* ── Checklist ── */
+    .checklist-section {
+      background: #1a1a2e;
+      border-radius: 14px;
+      padding: 28px 28px;
+      box-shadow: 0 4px 24px rgba(0,0,0,0.3);
+    }
+    .checklist {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+    .checklist li label {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      padding: 12px 14px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 0.95rem;
+      color: #d0d8f0;
+      transition: background 0.15s;
+    }
+    .checklist li label:hover {
+      background: rgba(255,255,255,0.04);
+    }
+    .checklist li input[type="checkbox"] {
+      appearance: none;
+      -webkit-appearance: none;
+      width: 20px; height: 20px;
+      border: 2px solid #444466;
+      border-radius: 5px;
+      flex-shrink: 0;
+      cursor: pointer;
+      background: transparent;
+      transition: background 0.15s, border-color 0.15s;
+      position: relative;
+    }
+    .checklist li input[type="checkbox"]:checked {
+      background: #e94560;
+      border-color: #e94560;
+    }
+    .checklist li input[type="checkbox"]:checked::after {
+      content: "✓";
+      position: absolute;
+      color: #fff;
+      font-size: 13px;
+      font-weight: 700;
+      top: 50%; left: 50%;
+      transform: translate(-50%, -52%);
+    }
+    .checklist li input[type="checkbox"]:checked + .item-text {
+      text-decoration: line-through;
+      color: #555575;
+    }
+    .item-text { flex: 1; }
+  </style>
+</head>
+<body>
+
+  <header>
+    <h1>MY TVET Dashboard</h1>
+    <p>Workshop: <span>TVET Skills Bootcamp 2025</span> &nbsp;·&nbsp; Date: <span>28 July 2025</span></p>
+  </header>
+
+  <main>
+
+    <!-- ── Summary Cards ── -->
+    <div class="cards-row">
+
+      <div class="card card--blue">
+        <div class="card-label">Students Registered</div>
+        <div class="card-number">34</div>
+        <div class="card-sub">out of 50 capacity &nbsp;·&nbsp; 6 on waitlist</div>
+      </div>
+
+      <div class="card card--orange">
+        <div class="card-label">Tasks Remaining</div>
+        <div class="card-number" id="tasks-count">5</div>
+        <div class="card-sub">out of 12 total tasks</div>
+      </div>
+
+      <div class="card card--green">
+        <div class="card-label">Workshop Status</div>
+        <div class="card-number">On Track</div>
+        <div class="card-sub">12 days to go &nbsp;·&nbsp; 58% prepared</div>
+      </div>
+
+    </div>
+
+    <!-- ── Workshop Status Panel ── -->
+    <section class="status-panel">
+      <p class="section-title">Workshop Status</p>
+
+      <div class="progress-label">
+        <strong>Workshop Preparation</strong>
+        <span>58% complete</span>
+      </div>
+      <div class="progress-track">
+        <div class="progress-fill"></div>
+      </div>
+
+      <ul class="milestones">
+        <li class="milestone">
+          <span class="dot dot--done"></span>
+          <span class="milestone-name">Venue Confirmed</span>
+          <span class="badge badge--done">Done</span>
+        </li>
+        <li class="milestone">
+          <span class="dot dot--progress"></span>
+          <span class="milestone-name">Facilitators Confirmed</span>
+          <span class="badge badge--progress">In Progress</span>
+        </li>
+        <li class="milestone">
+          <span class="dot dot--pending"></span>
+          <span class="milestone-name">Materials Printed</span>
+          <span class="badge badge--pending">Pending</span>
+        </li>
+      </ul>
+    </section>
+
+    <!-- ── Preparation Checklist ── -->
+    <section class="checklist-section">
+      <p class="section-title">Preparation Checklist</p>
+
+      <ul class="checklist">
+        <li>
+          <label>
+            <input type="checkbox" checked />
+            <span class="item-text">Send confirmation emails to registered students</span>
+          </label>
+        </li>
+        <li>
+          <label>
+            <input type="checkbox" checked />
+            <span class="item-text">Book and confirm the venue</span>
+          </label>
+        </li>
+        <li>
+          <label>
+            <input type="checkbox" />
+            <span class="item-text">Finalize slides for all 5 modules</span>
+          </label>
+        </li>
+        <li>
+          <label>
+            <input type="checkbox" />
+            <span class="item-text">Print 150 handouts</span>
+          </label>
+        </li>
+        <li>
+          <label>
+            <input type="checkbox" />
+            <span class="item-text">Provision lab environments for all students</span>
+          </label>
+        </li>
+        <li>
+          <label>
+            <input type="checkbox" />
+            <span class="item-text">Confirm all 3 facilitators</span>
+          </label>
+        </li>
+        <li>
+          <label>
+            <input type="checkbox" />
+            <span class="item-text">Publish and share the final agenda</span>
+          </label>
+        </li>
+        <li>
+          <label>
+            <input type="checkbox" />
+            <span class="item-text">Dry-run lab environment the day before</span>
+          </label>
+        </li>
+        <li>
+          <label>
+            <input type="checkbox" />
+            <span class="item-text">Prepare name tags and attendance register</span>
+          </label>
+        </li>
+        <li>
+          <label>
+            <input type="checkbox" />
+            <span class="item-text">Set up projector and audio equipment</span>
+          </label>
+        </li>
+        <li>
+          <label>
+            <input type="checkbox" />
+            <span class="item-text">Brief volunteers and helpers</span>
+          </label>
+        </li>
+        <li>
+          <label>
+            <input type="checkbox" />
+            <span class="item-text">Send day-before reminder to all attendees</span>
+          </label>
+        </li>
+      </ul>
+    </section>
+
+  </main>
+
+  <script>
+    const checkboxes = document.querySelectorAll('.checklist input[type="checkbox"]');
+    const tasksCount = document.getElementById('tasks-count');
+
+    function updateCount() {
+      const remaining = Array.from(checkboxes).filter(cb => !cb.checked).length;
+      tasksCount.textContent = remaining;
+    }
+
+    checkboxes.forEach(cb => cb.addEventListener('change', updateCount));
+
+    // Set initial count on page load
+    updateCount();
+  </script>
+
+</body>
+</html>
