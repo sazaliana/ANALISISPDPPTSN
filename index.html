@@ -1,389 +1,1004 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ms">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>MY TVET Dashboard</title>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Dashboard Jam Pengajaran Pensyarah | PTSN</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet"/>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet"/>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.2/dist/chart.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0/dist/chartjs-plugin-datalabels.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
   <style>
+    :root {
+      --bg-main:    #0a0a0a;
+      --bg-card:    #111111;
+      --bg-card2:   #161616;
+      --neon-yellow:#f5e642;
+      --neon-blue:  #00e5ff;
+      --neon-red:   #ff2d55;
+      --neon-green: #39ff14;
+      --text-main:  #e8e8e8;
+      --text-muted: #777777;
+      --border:     #222222;
+    }
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { background: var(--bg-main); color: var(--text-main); font-family: 'Segoe UI', sans-serif; }
 
-    body {
-      font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
-      background: #12121f;
-      color: #f0f0f0;
-      min-height: 100vh;
-    }
+    /* ── SCROLLBAR ── */
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: #111; }
+    ::-webkit-scrollbar-thumb { background: #333; border-radius: 3px; }
+    ::-webkit-scrollbar-thumb:hover { background: var(--neon-yellow); }
 
-    /* ── Header ── */
-    header {
-      background: #1a1a2e;
-      border-bottom: 3px solid #e94560;
-      padding: 28px 40px 22px;
-    }
-    header h1 {
-      font-size: 2rem;
-      font-weight: 800;
-      letter-spacing: 0.04em;
-      color: #ffffff;
-      text-transform: uppercase;
-    }
-    header p {
-      margin-top: 6px;
-      font-size: 0.95rem;
-      color: #a0a8c0;
-    }
-    header p span {
-      color: #e94560;
-      font-weight: 600;
-    }
-
-    /* ── Main wrapper ── */
-    main {
-      max-width: 1100px;
-      margin: 0 auto;
-      padding: 36px 24px 60px;
-    }
-
-    /* ── Cards Row ── */
-    .cards-row {
-      display: flex;
-      gap: 20px;
-      flex-wrap: wrap;
-      margin-bottom: 32px;
-    }
-    .card {
-      flex: 1 1 240px;
-      border-radius: 14px;
-      padding: 28px 24px;
-      color: #ffffff;
-      box-shadow: 0 4px 24px rgba(0,0,0,0.4);
-      position: relative;
-      overflow: hidden;
-    }
-    .card::before {
-      content: "";
-      position: absolute;
-      top: -30px; right: -30px;
-      width: 110px; height: 110px;
-      border-radius: 50%;
-      background: rgba(255,255,255,0.07);
-    }
-    .card--blue   { background: linear-gradient(135deg, #0f3460, #1a6bcc); }
-    .card--orange { background: linear-gradient(135deg, #8b1a2e, #e94560); }
-    .card--green  { background: linear-gradient(135deg, #0b4f3a, #1aad72); }
-
-    .card-label {
-      font-size: 0.75rem;
-      font-weight: 700;
-      letter-spacing: 0.12em;
-      text-transform: uppercase;
-      opacity: 0.85;
-      margin-bottom: 12px;
-    }
-    .card-number {
-      font-size: 3rem;
-      font-weight: 900;
-      line-height: 1;
-    }
-    .card-sub {
-      margin-top: 8px;
-      font-size: 0.85rem;
-      opacity: 0.8;
-    }
-
-    /* ── Section headings ── */
-    .section-title {
-      font-size: 1rem;
-      font-weight: 700;
-      letter-spacing: 0.08em;
-      text-transform: uppercase;
-      color: #a0a8c0;
-      margin-bottom: 16px;
-    }
-
-    /* ── Status Panel ── */
-    .status-panel {
-      background: #1a1a2e;
-      border-radius: 14px;
-      padding: 28px 28px;
-      margin-bottom: 32px;
-      box-shadow: 0 4px 24px rgba(0,0,0,0.3);
-    }
-    .progress-label {
+    /* ── HEADER ── */
+    .header-bar {
+      background: #0d0d0d;
+      border-bottom: 2px solid var(--neon-yellow);
+      padding: 14px 28px;
       display: flex;
       justify-content: space-between;
-      font-size: 0.88rem;
-      color: #a0a8c0;
-      margin-bottom: 8px;
-    }
-    .progress-label strong {
-      color: #f0f0f0;
-    }
-    .progress-track {
-      background: #2a2a45;
-      border-radius: 999px;
-      height: 12px;
-      overflow: hidden;
-      margin-bottom: 24px;
-    }
-    .progress-fill {
-      height: 100%;
-      border-radius: 999px;
-      background: linear-gradient(90deg, #1aad72, #0ff0a0);
-      width: 58%;
-      transition: width 0.6s ease;
-    }
-    .milestones {
-      list-style: none;
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
-    }
-    .milestone {
-      display: flex;
       align-items: center;
-      gap: 14px;
-      font-size: 0.92rem;
+      box-shadow: 0 0 30px rgba(245,230,66,0.12);
+      position: sticky; top: 0; z-index: 100;
     }
-    .dot {
-      width: 12px; height: 12px;
-      border-radius: 50%;
-      flex-shrink: 0;
-    }
-    .dot--done     { background: #1aad72; }
-    .dot--progress { background: #f5a623; }
-    .dot--pending  { background: #555575; }
-    .milestone-name { flex: 1; color: #d0d8f0; }
-    .badge {
-      font-size: 0.72rem;
-      font-weight: 700;
-      letter-spacing: 0.06em;
-      text-transform: uppercase;
-      padding: 3px 10px;
-      border-radius: 999px;
-    }
-    .badge--done     { background: rgba(26,173,114,0.18); color: #1aad72; }
-    .badge--progress { background: rgba(245,166,35,0.18);  color: #f5a623; }
-    .badge--pending  { background: rgba(85,85,117,0.25);   color: #8888aa; }
+    .header-title { font-size: 1.15rem; font-weight: 800; letter-spacing: 1px; color: var(--neon-yellow); text-shadow: 0 0 14px rgba(245,230,66,0.55); }
+    .header-sub   { font-size: 0.78rem; color: var(--text-muted); margin-top: 2px; }
+    .sesi-badge   { border: 1px solid var(--neon-blue); color: var(--neon-blue); font-size: 0.72rem; padding: 3px 12px; border-radius: 20px; white-space: nowrap; }
 
-    /* ── Checklist ── */
-    .checklist-section {
-      background: #1a1a2e;
-      border-radius: 14px;
-      padding: 28px 28px;
-      box-shadow: 0 4px 24px rgba(0,0,0,0.3);
+    /* ── SECTION TITLE ── */
+    .sec-title {
+      font-size: 0.7rem; font-weight: 700; text-transform: uppercase;
+      letter-spacing: 2px; color: var(--text-muted);
+      border-left: 3px solid var(--neon-yellow); padding-left: 10px;
+      margin-bottom: 14px; margin-top: 4px;
     }
-    .checklist {
-      list-style: none;
-      display: flex;
-      flex-direction: column;
-      gap: 4px;
+
+    /* ── CARD ── */
+    .card-dark {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 18px;
+      height: 100%;
     }
-    .checklist li label {
-      display: flex;
-      align-items: center;
-      gap: 14px;
-      padding: 12px 14px;
-      border-radius: 8px;
-      cursor: pointer;
-      font-size: 0.95rem;
-      color: #d0d8f0;
-      transition: background 0.15s;
+    .card-dark h6 { font-size: 0.85rem; font-weight: 700; margin-bottom: 12px; }
+
+    /* ── KPI ── */
+    .kpi-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 16px 20px;
+      position: relative; overflow: hidden;
+      transition: transform 0.2s, box-shadow 0.2s;
     }
-    .checklist li label:hover {
-      background: rgba(255,255,255,0.04);
+    .kpi-card:hover { transform: translateY(-3px); }
+    .kpi-val   { font-size: 2.2rem; font-weight: 900; line-height: 1.1; }
+    .kpi-label { font-size: 0.73rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; margin-top: 3px; }
+    .kpi-bg    { position: absolute; right: 14px; top: 50%; transform: translateY(-50%); font-size: 3.2rem; opacity: 0.07; }
+    .kpi-y { border-top: 3px solid var(--neon-yellow); } .kpi-y .kpi-val { color: var(--neon-yellow); text-shadow: 0 0 10px rgba(245,230,66,0.4); }
+    .kpi-b { border-top: 3px solid var(--neon-blue);   } .kpi-b .kpi-val { color: var(--neon-blue);   text-shadow: 0 0 10px rgba(0,229,255,0.4); }
+    .kpi-r { border-top: 3px solid var(--neon-red);    } .kpi-r .kpi-val { color: var(--neon-red);    text-shadow: 0 0 10px rgba(255,45,85,0.4); }
+    .kpi-g { border-top: 3px solid var(--neon-green);  } .kpi-g .kpi-val { color: var(--neon-green);  text-shadow: 0 0 10px rgba(57,255,20,0.4); }
+
+    /* ── UPLOAD ── */
+    .upload-zone {
+      border: 2px dashed var(--neon-blue); border-radius: 10px;
+      padding: 16px; text-align: center; cursor: pointer;
+      background: rgba(0,229,255,0.03); transition: all 0.2s;
     }
-    .checklist li input[type="checkbox"] {
-      appearance: none;
-      -webkit-appearance: none;
-      width: 20px; height: 20px;
-      border: 2px solid #444466;
-      border-radius: 5px;
-      flex-shrink: 0;
-      cursor: pointer;
-      background: transparent;
-      transition: background 0.15s, border-color 0.15s;
-      position: relative;
-    }
-    .checklist li input[type="checkbox"]:checked {
-      background: #e94560;
-      border-color: #e94560;
-    }
-    .checklist li input[type="checkbox"]:checked::after {
-      content: "✓";
-      position: absolute;
-      color: #fff;
-      font-size: 13px;
-      font-weight: 700;
-      top: 50%; left: 50%;
-      transform: translate(-50%, -52%);
-    }
-    .checklist li input[type="checkbox"]:checked + .item-text {
-      text-decoration: line-through;
-      color: #555575;
-    }
-    .item-text { flex: 1; }
+    .upload-zone:hover, .upload-zone.dragover { background: rgba(0,229,255,0.09); box-shadow: 0 0 16px rgba(0,229,255,0.18); }
+    .upload-zone code { background: rgba(0,229,255,0.1); color: var(--neon-blue); padding: 1px 5px; border-radius: 3px; font-size: 0.7rem; }
+
+    /* ── FILTER ── */
+    .filter-panel { background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; padding: 16px 20px; }
+    .form-select  { background: var(--bg-card2); color: var(--text-main); border: 1px solid #333; font-size: 0.82rem; }
+    .form-select:focus { border-color: var(--neon-yellow); box-shadow: 0 0 0 3px rgba(245,230,66,0.12); background: var(--bg-card2); color: var(--text-main); }
+    .form-select option { background: #1a1a1a; }
+    .btn-reset { background: transparent; border: 1px solid var(--neon-red); color: var(--neon-red); font-size: 0.8rem; padding: 5px 14px; border-radius: 6px; transition: all 0.2s; cursor: pointer; }
+    .btn-reset:hover { background: rgba(255,45,85,0.12); box-shadow: 0 0 10px rgba(255,45,85,0.2); }
+    .filter-label { font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-muted); margin-bottom: 4px; display: block; }
+
+    /* ── TABLE ── */
+    .table { color: var(--text-main); }
+    .table thead th { background: #0d0d0d; color: var(--neon-yellow); font-size: 0.78rem; font-weight: 700; border-color: #222; text-transform: uppercase; letter-spacing: 0.4px; cursor: pointer; white-space: nowrap; }
+    .table thead th:hover { color: var(--neon-blue); }
+    .table tbody td { font-size: 0.8rem; border-color: #1a1a1a; vertical-align: middle; }
+    .table tbody tr:hover { background: rgba(245,230,66,0.03); }
+    .table tbody tr.jam-sifar td { opacity: 0.45; font-style: italic; }
+    .table tfoot td { background: #0d0d0d; font-weight: 700; font-size: 0.8rem; border-color: #333; color: var(--neon-yellow); }
+
+    /* ── BADGES ── */
+    .b-jab  { background: rgba(245,230,66,0.1); color: var(--neon-yellow); border: 1px solid rgba(245,230,66,0.25); border-radius: 5px; padding: 2px 7px; font-size: 0.72rem; font-weight: 700; }
+    .b-prog { background: rgba(0,229,255,0.08); color: var(--neon-blue);   border: 1px solid rgba(0,229,255,0.25);  border-radius: 5px; padding: 2px 7px; font-size: 0.72rem; font-weight: 700; }
+    .b-gred { background: rgba(255,45,85,0.08); color: var(--neon-red);    border: 1px solid rgba(255,45,85,0.25);   border-radius: 5px; padding: 2px 7px; font-size: 0.72rem; font-weight: 700; }
+    .b-pct  { background: rgba(57,255,20,0.08); color: var(--neon-green);  border: 1px solid rgba(57,255,20,0.25);   border-radius: 5px; padding: 2px 6px; font-size: 0.7rem;  font-weight: 700; }
+    .b-na   { background: rgba(255,255,255,0.05); color: #666; border: 1px solid #333; border-radius: 5px; padding: 2px 7px; font-size: 0.72rem; }
+    /* ── BADGE KATEGORI BEBAN ── */
+    .b-rendah   { background: rgba(57,255,20,0.12);  color: #39ff14; border: 1px solid rgba(57,255,20,0.35);  border-radius: 5px; padding: 2px 7px; font-size: 0.72rem; font-weight: 700; }
+    .b-aras     { background: rgba(245,230,66,0.12); color: #f5e642; border: 1px solid rgba(245,230,66,0.35); border-radius: 5px; padding: 2px 7px; font-size: 0.72rem; font-weight: 700; }
+    .b-tinggi   { background: rgba(255,159,0,0.12);  color: #ff9f00; border: 1px solid rgba(255,159,0,0.35);  border-radius: 5px; padding: 2px 7px; font-size: 0.72rem; font-weight: 700; }
+    .b-kritikal { background: rgba(255,45,85,0.12);  color: #ff2d55; border: 1px solid rgba(255,45,85,0.35);  border-radius: 5px; padding: 2px 7px; font-size: 0.72rem; font-weight: 700; }
+    /* ── KPI KATEGORI ── */
+    .kpi-orange { border-top: 3px solid #ff9f00; } .kpi-orange .kpi-val { color: #ff9f00; text-shadow: 0 0 10px rgba(255,159,0,0.4); }
+
+    /* ── ALERT ── */
+    .alert-neon { background: rgba(255,45,85,0.08); border: 1px solid var(--neon-red); color: var(--neon-red); border-radius: 8px; padding: 12px 16px; font-size: 0.83rem; display: none; margin-bottom: 16px; }
+
+    /* ── REKOD BADGE ── */
+    #rekod-info { background: rgba(0,229,255,0.1); color: var(--neon-blue); border: 1px solid rgba(0,229,255,0.25); font-size: 0.75rem; padding: 3px 10px; border-radius: 20px; }
+
+    /* ── SORT ── */
+    .sort-icon { color: #444; font-size: 0.65rem; margin-left: 3px; }
+    .sort-icon.active { color: var(--neon-yellow); }
+
+    canvas { max-height: 300px; }
   </style>
 </head>
 <body>
 
-  <header>
-    <h1>MY TVET Dashboard</h1>
-    <p>Workshop: <span>TVET Skills Bootcamp 2025</span> &nbsp;·&nbsp; Date: <span>28 July 2025</span></p>
-  </header>
+<!-- ══ HEADER ══ -->
+<div class="header-bar">
+  <div>
+    <div class="header-title"><i class="bi bi-mortarboard-fill me-2"></i>DASHBOARD JAM PENGAJARAN PENSYARAH</div>
+    <div class="header-sub">Politeknik Tun Syed Nasir Syed Ismail &mdash; Bahagian Akademik</div>
+  </div>
+  <div class="text-end d-flex flex-column align-items-end gap-1">
+    <span class="sesi-badge" id="badgeSesi">Sesi 1 2026/2027</span>
+    <small style="color:var(--text-muted);font-size:0.68rem" id="tarikh-kemaskini"></small>
+  </div>
+</div>
 
-  <main>
+<div class="container-fluid px-4 pt-3 pb-5">
 
-    <!-- ── Summary Cards ── -->
-    <div class="cards-row">
+  <!-- ══ ALERT ══ -->
+  <div id="alertBox" class="alert-neon">
+    <i class="bi bi-exclamation-triangle-fill me-2"></i>
+    <span id="alertMesej"></span>
+    <button style="float:right;background:none;border:none;color:var(--neon-red);cursor:pointer" onclick="document.getElementById('alertBox').style.display='none'">✕</button>
+  </div>
 
-      <div class="card card--blue">
-        <div class="card-label">Students Registered</div>
-        <div class="card-number">34</div>
-        <div class="card-sub">out of 50 capacity &nbsp;·&nbsp; 6 on waitlist</div>
+  <!-- ══ FILTER ══ -->
+  <div class="filter-panel mb-3">
+    <div class="sec-title mb-2"><i class="bi bi-funnel me-1"></i>Penapis Data</div>
+    <div class="row g-2">
+      <div class="col-sm-3">
+        <span class="filter-label">Jabatan</span>
+        <select class="form-select form-select-sm" id="filterJabatan" onchange="kemaskiniSemua()">
+          <option value="">Semua Jabatan</option>
+        </select>
       </div>
-
-      <div class="card card--orange">
-        <div class="card-label">Tasks Remaining</div>
-        <div class="card-number" id="tasks-count">5</div>
-        <div class="card-sub">out of 12 total tasks</div>
+      <div class="col-sm-3">
+        <span class="filter-label">Program</span>
+        <select class="form-select form-select-sm" id="filterProgram" onchange="kemaskiniSemua()">
+          <option value="">Semua Program</option>
+        </select>
       </div>
-
-      <div class="card card--green">
-        <div class="card-label">Workshop Status</div>
-        <div class="card-number">On Track</div>
-        <div class="card-sub">12 days to go &nbsp;·&nbsp; 58% prepared</div>
+      <div class="col-sm-3">
+        <span class="filter-label">Gred</span>
+        <select class="form-select form-select-sm" id="filterGred" onchange="kemaskiniSemua()">
+          <option value="">Semua Gred</option>
+        </select>
       </div>
-
+      <div class="col-sm-3 d-flex align-items-end">
+        <button class="btn-reset w-100" onclick="setSemulaFilter()"><i class="bi bi-arrow-counterclockwise me-1"></i>Set Semula</button>
+      </div>
     </div>
+  </div>
 
-    <!-- ── Workshop Status Panel ── -->
-    <section class="status-panel">
-      <p class="section-title">Workshop Status</p>
-
-      <div class="progress-label">
-        <strong>Workshop Preparation</strong>
-        <span>58% complete</span>
+  <!-- ══ KPI ══ -->
+  <div class="sec-title"><i class="bi bi-speedometer2 me-1"></i>Ringkasan Keseluruhan</div>
+  <div class="row g-3 mb-4">
+    <div class="col-6">
+      <div class="kpi-card kpi-y">
+        <div class="kpi-val" id="kpi-pensyarah">0</div>
+        <div class="kpi-label">Jumlah Pensyarah Aktif</div>
+        <i class="bi bi-person-fill kpi-bg"></i>
       </div>
-      <div class="progress-track">
-        <div class="progress-fill"></div>
+    </div>
+    <div class="col-6">
+      <div class="kpi-card kpi-b">
+        <div class="kpi-val" id="kpi-jabatan">0</div>
+        <div class="kpi-label">Jumlah Jabatan</div>
+        <i class="bi bi-building kpi-bg"></i>
       </div>
+    </div>
+  </div>
 
-      <ul class="milestones">
-        <li class="milestone">
-          <span class="dot dot--done"></span>
-          <span class="milestone-name">Venue Confirmed</span>
-          <span class="badge badge--done">Done</span>
-        </li>
-        <li class="milestone">
-          <span class="dot dot--progress"></span>
-          <span class="milestone-name">Facilitators Confirmed</span>
-          <span class="badge badge--progress">In Progress</span>
-        </li>
-        <li class="milestone">
-          <span class="dot dot--pending"></span>
-          <span class="milestone-name">Materials Printed</span>
-          <span class="badge badge--pending">Pending</span>
-        </li>
-      </ul>
-    </section>
+  <!-- ══ KPI KATEGORI BEBAN ══ -->
+  <div class="sec-title mt-3"><i class="bi bi-activity me-1"></i>Analisis Beban Mengajar Pensyarah</div>
+  <div class="row g-3 mb-4">
+    <div class="col-6 col-md-3">
+      <div class="kpi-card kpi-g">
+        <div class="kpi-val" id="kpi-rendah">0</div>
+        <div class="kpi-label" id="kpi-rendah-pct">Beban Rendah (&lt;16 jam)</div>
+        <i class="bi bi-battery-half kpi-bg"></i>
+      </div>
+    </div>
+    <div class="col-6 col-md-3">
+      <div class="kpi-card kpi-y">
+        <div class="kpi-val" id="kpi-aras">0</div>
+        <div class="kpi-label" id="kpi-aras-pct">Penanda Aras (16 jam)</div>
+        <i class="bi bi-battery-full kpi-bg"></i>
+      </div>
+    </div>
+    <div class="col-6 col-md-3">
+      <div class="kpi-card kpi-orange">
+        <div class="kpi-val" id="kpi-tinggi">0</div>
+        <div class="kpi-label" id="kpi-tinggi-pct">Beban Tinggi (17–18 jam)</div>
+        <i class="bi bi-exclamation-circle kpi-bg"></i>
+      </div>
+    </div>
+    <div class="col-6 col-md-3">
+      <div class="kpi-card kpi-r">
+        <div class="kpi-val" id="kpi-kritikal">0</div>
+        <div class="kpi-label" id="kpi-kritikal-pct">Beban Kritikal (&gt;18 jam)</div>
+        <i class="bi bi-exclamation-triangle kpi-bg"></i>
+      </div>
+    </div>
+  </div>
 
-    <!-- ── Preparation Checklist ── -->
-    <section class="checklist-section">
-      <p class="section-title">Preparation Checklist</p>
+  <!-- ══ CARTA TABURAN KATEGORI BEBAN ══ -->
+  <div class="sec-title"><i class="bi bi-bar-chart-line me-1"></i>Taburan Beban Mengajar Pensyarah</div>
+  <div class="row g-3 mb-4">
+    <div class="col-md-6">
+      <div class="card-dark">
+        <h6 style="color:var(--neon-yellow)"><i class="bi bi-bar-chart-line-fill me-2"></i>Bilangan Pensyarah Mengikut Kategori Beban</h6>
+        <canvas id="cartaBarKategori"></canvas>
+      </div>
+    </div>
+    <div class="col-md-6">
+      <div class="card-dark">
+        <h6 style="color:var(--neon-blue)"><i class="bi bi-pie-chart-fill me-2"></i>Peratus Pensyarah Mengikut Kategori Beban (%)</h6>
+        <canvas id="cartaDonutKategori"></canvas>
+      </div>
+    </div>
+  </div>
 
-      <ul class="checklist">
-        <li>
-          <label>
-            <input type="checkbox" checked />
-            <span class="item-text">Send confirmation emails to registered students</span>
-          </label>
-        </li>
-        <li>
-          <label>
-            <input type="checkbox" checked />
-            <span class="item-text">Book and confirm the venue</span>
-          </label>
-        </li>
-        <li>
-          <label>
-            <input type="checkbox" />
-            <span class="item-text">Finalize slides for all 5 modules</span>
-          </label>
-        </li>
-        <li>
-          <label>
-            <input type="checkbox" />
-            <span class="item-text">Print 150 handouts</span>
-          </label>
-        </li>
-        <li>
-          <label>
-            <input type="checkbox" />
-            <span class="item-text">Provision lab environments for all students</span>
-          </label>
-        </li>
-        <li>
-          <label>
-            <input type="checkbox" />
-            <span class="item-text">Confirm all 3 facilitators</span>
-          </label>
-        </li>
-        <li>
-          <label>
-            <input type="checkbox" />
-            <span class="item-text">Publish and share the final agenda</span>
-          </label>
-        </li>
-        <li>
-          <label>
-            <input type="checkbox" />
-            <span class="item-text">Dry-run lab environment the day before</span>
-          </label>
-        </li>
-        <li>
-          <label>
-            <input type="checkbox" />
-            <span class="item-text">Prepare name tags and attendance register</span>
-          </label>
-        </li>
-        <li>
-          <label>
-            <input type="checkbox" />
-            <span class="item-text">Set up projector and audio equipment</span>
-          </label>
-        </li>
-        <li>
-          <label>
-            <input type="checkbox" />
-            <span class="item-text">Brief volunteers and helpers</span>
-          </label>
-        </li>
-        <li>
-          <label>
-            <input type="checkbox" />
-            <span class="item-text">Send day-before reminder to all attendees</span>
-          </label>
-        </li>
-      </ul>
-    </section>
+  <!-- ══ CARTA PERBANDINGAN KATEGORI ANTARA JABATAN ══ -->
+  <div class="sec-title"><i class="bi bi-diagram-3 me-1"></i>Perbandingan Kategori Beban Antara Jabatan</div>
+  <div class="row g-3 mb-4">
+    <div class="col-12">
+      <div class="card-dark">
+        <h6 style="color:var(--neon-yellow)"><i class="bi bi-bar-chart-steps me-2"></i>Agihan Kategori Beban per Jabatan — Peratus 100% (Stacked)</h6>
+        <canvas id="cartaStackedKategori" style="max-height:320px"></canvas>
+      </div>
+    </div>
+  </div>
+  <div class="row g-3 mb-4">
+    <div class="col-12">
+      <div class="card-dark">
+        <h6 style="color:var(--neon-blue)"><i class="bi bi-bar-chart-steps me-2"></i>Bilangan Pensyarah Mengikut Kategori Beban per Jabatan — Grouped Bar</h6>
+        <canvas id="cartaGroupedKategori" style="max-height:320px"></canvas>
+      </div>
+    </div>
+  </div>
 
-  </main>
+  <!-- ══ CARTA 4: PURATA ══ -->
+  <div class="sec-title"><i class="bi bi-graph-up me-1"></i>Purata Jam Mengajar &amp; Kelas per Jabatan</div>
+  <div class="row g-3 mb-4">
+    <div class="col-md-6">
+      <div class="card-dark">
+        <h6 style="color:var(--neon-green)"><i class="bi bi-graph-up me-2"></i>Purata Jam Mengajar per Jabatan</h6>
+        <canvas id="cartaPurataJam"></canvas>
+      </div>
+    </div>
+    <div class="col-md-6">
+      <div class="card-dark">
+        <h6 style="color:var(--neon-yellow)"><i class="bi bi-graph-up me-2"></i>Purata Kelas Utama per Jabatan</h6>
+        <canvas id="cartaPurataKelas"></canvas>
+      </div>
+    </div>
+  </div>
 
-  <script>
-    const checkboxes = document.querySelectorAll('.checklist input[type="checkbox"]');
-    const tasksCount = document.getElementById('tasks-count');
+  <!-- ══ CARTA 5: PENSYARAH HORIZONTAL ══ -->
+  <div class="sec-title"><i class="bi bi-person-lines-fill me-1"></i>Jam Mengajar Setiap Pensyarah (Aktif Sahaja)</div>
+  <div class="row g-3 mb-4">
+    <div class="col-12">
+      <div class="card-dark">
+        <h6 style="color:var(--neon-red)"><i class="bi bi-person-lines-fill me-2"></i>Jam Mengajar Mengikut Pensyarah — Disusun Tertinggi ke Terendah</h6>
+        <canvas id="cartaBarPensyarah" style="max-height:500px"></canvas>
+      </div>
+    </div>
+  </div>
 
-    function updateCount() {
-      const remaining = Array.from(checkboxes).filter(cb => !cb.checked).length;
-      tasksCount.textContent = remaining;
+  <!-- ══ JADUAL ══ -->
+  <div class="sec-title"><i class="bi bi-table me-1"></i>Senarai Lengkap Data Pensyarah</div>
+  <div class="card-dark mb-5">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+      <div style="font-size:0.78rem;color:var(--text-muted)">
+        <i class="bi bi-info-circle me-1"></i>Klik header untuk isih &bull; Rekod bergaris = jam mengajar = 0
+      </div>
+      <span id="rekod-info">0 rekod</span>
+    </div>
+    <div class="table-responsive">
+      <table class="table table-sm mb-0">
+        <thead>
+          <tr>
+            <th class="text-center" style="width:38px">#</th>
+            <th onclick="isihJadual('nama')">Nama Pensyarah <i class="bi bi-arrow-down-up sort-icon" id="sort-nama"></i></th>
+            <th onclick="isihJadual('gred')" class="text-center">Gred <i class="bi bi-arrow-down-up sort-icon" id="sort-gred"></i></th>
+            <th onclick="isihJadual('jabatan')" class="text-center">Jabatan <i class="bi bi-arrow-down-up sort-icon" id="sort-jabatan"></i></th>
+            <th onclick="isihJadual('program')" class="text-center">Program <i class="bi bi-arrow-down-up sort-icon" id="sort-program"></i></th>
+            <th onclick="isihJadual('jam')" class="text-center">Jam Mengajar <i class="bi bi-arrow-down-up sort-icon" id="sort-jam"></i></th>
+            <th onclick="isihJadual('kategori')" class="text-center">Kategori Beban <i class="bi bi-arrow-down-up sort-icon" id="sort-kategori"></i></th>
+            <th onclick="isihJadual('kelas')" class="text-center">Bil. Kelas <i class="bi bi-arrow-down-up sort-icon" id="sort-kelas"></i></th>
+            <th class="text-center">% Jam</th>
+            <th class="text-center">% Kelas</th>
+          </tr>
+        </thead>
+        <tbody id="jadualBody"></tbody>
+        <tfoot id="jadualFoot"></tfoot>
+      </table>
+    </div>
+  </div>
+
+</div><!-- /container -->
+
+<script>
+Chart.register(ChartDataLabels);
+
+// ══════════════════════════════════════════════════
+// DATA SEBENAR — 151 PENSYARAH PTSN SESI 1 2026/2027
+// ══════════════════════════════════════════════════
+const dataSampel = [
+  // ── JKPK / DPE (17 pensyarah) ──
+  {NAMA_PENSYARAH:"DR. AZMI BIN AHMAD",GRED:"DH10",JABATAN:"JKPK",PROGRAM:"DPE",JUMLAH_JAM_MENGAJAR:13,BILANGAN_KELAS_UTAMA:2},
+  {NAMA_PENSYARAH:"KHAMISAH BINTI MOHAMED",GRED:"DH14",JABATAN:"JKPK",PROGRAM:"DPE",JUMLAH_JAM_MENGAJAR:18,BILANGAN_KELAS_UTAMA:3},
+  {NAMA_PENSYARAH:"DR.MOHD AFFANDI BIN MOHD ALI",GRED:"DH14",JABATAN:"JKPK",PROGRAM:"DPE",JUMLAH_JAM_MENGAJAR:16,BILANGAN_KELAS_UTAMA:3},
+  {NAMA_PENSYARAH:"BURHANUDDIN BIN HARUN",GRED:"DH13",JABATAN:"JKPK",PROGRAM:"DPE",JUMLAH_JAM_MENGAJAR:17,BILANGAN_KELAS_UTAMA:3},
+  {NAMA_PENSYARAH:"TS.DR. MOHD HAFIZ BIN ALI",GRED:"DH13",JABATAN:"JKPK",PROGRAM:"DPE",JUMLAH_JAM_MENGAJAR:17,BILANGAN_KELAS_UTAMA:5},
+  {NAMA_PENSYARAH:"AHMAD BAYAZID BIN PATKAR",GRED:"DH13",JABATAN:"JKPK",PROGRAM:"DPE",JUMLAH_JAM_MENGAJAR:17,BILANGAN_KELAS_UTAMA:5},
+  {NAMA_PENSYARAH:"MOHD AZLANI BIN AZMY",GRED:"DH12",JABATAN:"JKPK",PROGRAM:"DPE",JUMLAH_JAM_MENGAJAR:18,BILANGAN_KELAS_UTAMA:3},
+  {NAMA_PENSYARAH:"MOHD AZIM BIN MD JANIS",GRED:"DH12",JABATAN:"JKPK",PROGRAM:"DPE",JUMLAH_JAM_MENGAJAR:17,BILANGAN_KELAS_UTAMA:4},
+  {NAMA_PENSYARAH:"FAZLIANA BINTI ABDULLAH",GRED:"DH10",JABATAN:"JKPK",PROGRAM:"DPE",JUMLAH_JAM_MENGAJAR:17,BILANGAN_KELAS_UTAMA:3},
+  {NAMA_PENSYARAH:"SUNATRAH BINTI ABDULLAHYI",GRED:"DH10",JABATAN:"JKPK",PROGRAM:"DPE",JUMLAH_JAM_MENGAJAR:17,BILANGAN_KELAS_UTAMA:3},
+  {NAMA_PENSYARAH:"DR. SYARIPAH ZA'IMAH BINTI SYED JAAPAR",GRED:"DH10",JABATAN:"JKPK",PROGRAM:"DPE",JUMLAH_JAM_MENGAJAR:15,BILANGAN_KELAS_UTAMA:3},
+  {NAMA_PENSYARAH:"HALIMATUL SA'DIAH BINTI TALIB",GRED:"DH10",JABATAN:"JKPK",PROGRAM:"DPE",JUMLAH_JAM_MENGAJAR:18,BILANGAN_KELAS_UTAMA:2},
+  {NAMA_PENSYARAH:"FAIZNUR IZZATI BINTI MOHD SULAIMAN SHAH",GRED:"DH12",JABATAN:"JKPK",PROGRAM:"DPE",JUMLAH_JAM_MENGAJAR:17,BILANGAN_KELAS_UTAMA:4},
+  {NAMA_PENSYARAH:"NUR HUSNA BINTI ABU BAKAR",GRED:"DH10",JABATAN:"JKPK",PROGRAM:"DPE",JUMLAH_JAM_MENGAJAR:17,BILANGAN_KELAS_UTAMA:4},
+  {NAMA_PENSYARAH:"NOR FARIHAH BINTI ADNAN",GRED:"DH10",JABATAN:"JKPK",PROGRAM:"DPE",JUMLAH_JAM_MENGAJAR:18,BILANGAN_KELAS_UTAMA:5},
+  {NAMA_PENSYARAH:"ZAIHASRAH BINTI MASRON",GRED:"DH10",JABATAN:"JKPK",PROGRAM:"DPE",JUMLAH_JAM_MENGAJAR:17,BILANGAN_KELAS_UTAMA:3},
+  {NAMA_PENSYARAH:"HALEDA SYUHADA BINTI KASIM",GRED:"DH9",JABATAN:"JKPK",PROGRAM:"DPE",JUMLAH_JAM_MENGAJAR:18,BILANGAN_KELAS_UTAMA:3},
+  // ── JKPK / DCE (15 pensyarah) ──
+  {NAMA_PENSYARAH:"ChM DR NORFARHANA BINTI ABDUL SAMAD",GRED:"DH10",JABATAN:"JKPK",PROGRAM:"DCE",JUMLAH_JAM_MENGAJAR:17,BILANGAN_KELAS_UTAMA:3},
+  {NAMA_PENSYARAH:"DR RAHIZANA BT MOHD IBRAHIM",GRED:"DH13",JABATAN:"JKPK",PROGRAM:"DCE",JUMLAH_JAM_MENGAJAR:18,BILANGAN_KELAS_UTAMA:3},
+  {NAMA_PENSYARAH:"ROSMAWATI BINTI JALAL",GRED:"DH13",JABATAN:"JKPK",PROGRAM:"DCE",JUMLAH_JAM_MENGAJAR:17,BILANGAN_KELAS_UTAMA:4},
+  {NAMA_PENSYARAH:"AZMIR IQBAL BIN IBRAHIM",GRED:"DH13",JABATAN:"JKPK",PROGRAM:"DCE",JUMLAH_JAM_MENGAJAR:11,BILANGAN_KELAS_UTAMA:1},
+  {NAMA_PENSYARAH:"NOORIZYAN BINTI ASIMAT",GRED:"DH12",JABATAN:"JKPK",PROGRAM:"DCE",JUMLAH_JAM_MENGAJAR:17,BILANGAN_KELAS_UTAMA:3},
+  {NAMA_PENSYARAH:"MOHD KHAIRULAMZARI BIN HAMJAH",GRED:"DH12",JABATAN:"JKPK",PROGRAM:"DCE",JUMLAH_JAM_MENGAJAR:19,BILANGAN_KELAS_UTAMA:4},
+  {NAMA_PENSYARAH:"SHAMSUL BIN MAZALAN",GRED:"DH12",JABATAN:"JKPK",PROGRAM:"DCE",JUMLAH_JAM_MENGAJAR:18,BILANGAN_KELAS_UTAMA:3},
+  {NAMA_PENSYARAH:"SURIANA BT ISMAIL",GRED:"DH10",JABATAN:"JKPK",PROGRAM:"DCE",JUMLAH_JAM_MENGAJAR:17,BILANGAN_KELAS_UTAMA:3},
+  {NAMA_PENSYARAH:"NORAINI BINTI KAMISMAN",GRED:"DH10",JABATAN:"JKPK",PROGRAM:"DCE",JUMLAH_JAM_MENGAJAR:19,BILANGAN_KELAS_UTAMA:4},
+  {NAMA_PENSYARAH:"MOHD FAHMI BIN MAT ZIN",GRED:"DH10",JABATAN:"JKPK",PROGRAM:"DCE",JUMLAH_JAM_MENGAJAR:17,BILANGAN_KELAS_UTAMA:4},
+  {NAMA_PENSYARAH:"LEONG KOK SENG",GRED:"DH10",JABATAN:"JKPK",PROGRAM:"DCE",JUMLAH_JAM_MENGAJAR:19,BILANGAN_KELAS_UTAMA:3},
+  {NAMA_PENSYARAH:"NOR SYUHADA BINTI MUSLIM",GRED:"DH10",JABATAN:"JKPK",PROGRAM:"DCE",JUMLAH_JAM_MENGAJAR:17,BILANGAN_KELAS_UTAMA:4},
+  {NAMA_PENSYARAH:"NOR AZRIN BINTI AHMAD KURNIN",GRED:"DH9",JABATAN:"JKPK",PROGRAM:"DCE",JUMLAH_JAM_MENGAJAR:19,BILANGAN_KELAS_UTAMA:5},
+  {NAMA_PENSYARAH:"SITI FATIMAH BINTI SA'AD",GRED:"DH9",JABATAN:"JKPK",PROGRAM:"DCE",JUMLAH_JAM_MENGAJAR:17,BILANGAN_KELAS_UTAMA:5},
+  {NAMA_PENSYARAH:"AZINI AMIZA BINTI HASHIM",GRED:"DH10",JABATAN:"JKPK",PROGRAM:"DCE",JUMLAH_JAM_MENGAJAR:17,BILANGAN_KELAS_UTAMA:4},
+  {NAMA_PENSYARAH:"RAIDAH BINTI MD SUDI",GRED:"DH10",JABATAN:"JKPK",PROGRAM:"DCE",JUMLAH_JAM_MENGAJAR:17,BILANGAN_KELAS_UTAMA:4},
+  {NAMA_PENSYARAH:"TENGKU FATTNIN ALYA' BINTI TENGKU KAMARUZAMAN",GRED:"DH10",JABATAN:"JKPK",PROGRAM:"DCE",JUMLAH_JAM_MENGAJAR:18,BILANGAN_KELAS_UTAMA:5},
+  // ── JKPK / DPC (24 pensyarah) ──
+  {NAMA_PENSYARAH:"MUHAMMAD ARIFFIN BIN RAYA",GRED:"DH10",JABATAN:"JKPK",PROGRAM:"DPC",JUMLAH_JAM_MENGAJAR:18,BILANGAN_KELAS_UTAMA:2},
+  {NAMA_PENSYARAH:"AHMAD BIN TULKA",GRED:"DH14",JABATAN:"JKPK",PROGRAM:"DPC",JUMLAH_JAM_MENGAJAR:17,BILANGAN_KELAS_UTAMA:3},
+  {NAMA_PENSYARAH:"NOR ASHIQEEN BINTI JAMALUD-DIN",GRED:"DH13",JABATAN:"JKPK",PROGRAM:"DPC",JUMLAH_JAM_MENGAJAR:16,BILANGAN_KELAS_UTAMA:1},
+  {NAMA_PENSYARAH:"DR. DULINA BINTI THOLIBON",GRED:"DH14",JABATAN:"JKPK",PROGRAM:"DPC",JUMLAH_JAM_MENGAJAR:15,BILANGAN_KELAS_UTAMA:3},
+  {NAMA_PENSYARAH:"AMRAN BIN AWANG @ MUDA",GRED:"DH13",JABATAN:"JKPK",PROGRAM:"DPC",JUMLAH_JAM_MENGAJAR:17,BILANGAN_KELAS_UTAMA:2},
+  {NAMA_PENSYARAH:"Ts. MOHAMED HAMDAN BIN MOHAMAD IBRAHIM",GRED:"DH14",JABATAN:"JKPK",PROGRAM:"DPC",JUMLAH_JAM_MENGAJAR:18,BILANGAN_KELAS_UTAMA:5},
+  {NAMA_PENSYARAH:"MOHD HAFIZ BIN TUPARMAN",GRED:"DH13",JABATAN:"JKPK",PROGRAM:"DPC",JUMLAH_JAM_MENGAJAR:17,BILANGAN_KELAS_UTAMA:5},
+  {NAMA_PENSYARAH:"DR. ABDULLAH ATIQ BIN ARIFIN",GRED:"DH13",JABATAN:"JKPK",PROGRAM:"DPC",JUMLAH_JAM_MENGAJAR:16,BILANGAN_KELAS_UTAMA:4},
+  {NAMA_PENSYARAH:"Ir DR MOHD RIZAL BIN LIAS",GRED:"DH13",JABATAN:"JKPK",PROGRAM:"DPC",JUMLAH_JAM_MENGAJAR:18,BILANGAN_KELAS_UTAMA:3},
+  {NAMA_PENSYARAH:"JAMALUDIN MOHD TOLKAH",GRED:"DH13",JABATAN:"JKPK",PROGRAM:"DPC",JUMLAH_JAM_MENGAJAR:18,BILANGAN_KELAS_UTAMA:3},
+  {NAMA_PENSYARAH:"DR. ROSNI BINTI YUSOFF",GRED:"DH13",JABATAN:"JKPK",PROGRAM:"DPC",JUMLAH_JAM_MENGAJAR:18,BILANGAN_KELAS_UTAMA:4},
+  {NAMA_PENSYARAH:"NOR HISHAM BIN SUHADI",GRED:"DH13",JABATAN:"JKPK",PROGRAM:"DPC",JUMLAH_JAM_MENGAJAR:17,BILANGAN_KELAS_UTAMA:1},
+  {NAMA_PENSYARAH:"ZAINI BIN ASHAARI",GRED:"DH13",JABATAN:"JKPK",PROGRAM:"DPC",JUMLAH_JAM_MENGAJAR:21,BILANGAN_KELAS_UTAMA:2},
+  {NAMA_PENSYARAH:"MOHD KHUZAIRY MOHD YUSOF",GRED:"DH13",JABATAN:"JKPK",PROGRAM:"DPC",JUMLAH_JAM_MENGAJAR:17,BILANGAN_KELAS_UTAMA:4},
+  {NAMA_PENSYARAH:"MOHD SURI BIN SARINGAT",GRED:"DH13",JABATAN:"JKPK",PROGRAM:"DPC",JUMLAH_JAM_MENGAJAR:17,BILANGAN_KELAS_UTAMA:4},
+  {NAMA_PENSYARAH:"NORHAZLINA BINTI AMON",GRED:"DH13",JABATAN:"JKPK",PROGRAM:"DPC",JUMLAH_JAM_MENGAJAR:18,BILANGAN_KELAS_UTAMA:3},
+  {NAMA_PENSYARAH:"MOHAMAD HAZIZAN BIN ATAN",GRED:"DH13",JABATAN:"JKPK",PROGRAM:"DPC",JUMLAH_JAM_MENGAJAR:18,BILANGAN_KELAS_UTAMA:3},
+  {NAMA_PENSYARAH:"HAIRIZZA BIN KOSNAN",GRED:"DH12",JABATAN:"JKPK",PROGRAM:"DPC",JUMLAH_JAM_MENGAJAR:18,BILANGAN_KELAS_UTAMA:3},
+  {NAMA_PENSYARAH:"AMINAH BINTI ISHAK",GRED:"DH12",JABATAN:"JKPK",PROGRAM:"DPC",JUMLAH_JAM_MENGAJAR:17,BILANGAN_KELAS_UTAMA:3},
+  {NAMA_PENSYARAH:"TS MUHAMMAD ZUHAIRY ZULKIFLI",GRED:"DH12",JABATAN:"JKPK",PROGRAM:"DPC",JUMLAH_JAM_MENGAJAR:16,BILANGAN_KELAS_UTAMA:3},
+  {NAMA_PENSYARAH:"NASRAH BINTI MAHMUD",GRED:"DH12",JABATAN:"JKPK",PROGRAM:"DPC",JUMLAH_JAM_MENGAJAR:18,BILANGAN_KELAS_UTAMA:3},
+  {NAMA_PENSYARAH:"MOHD FADLI BIN KAMBAS",GRED:"DH9",JABATAN:"JKPK",PROGRAM:"DPC",JUMLAH_JAM_MENGAJAR:17,BILANGAN_KELAS_UTAMA:3},
+  {NAMA_PENSYARAH:"SHARIFFAH NUR JANNAH BINTI SYED ZAINOL ABIDIN",GRED:"DH10",JABATAN:"JKPK",PROGRAM:"DPC",JUMLAH_JAM_MENGAJAR:18,BILANGAN_KELAS_UTAMA:4},
+  {NAMA_PENSYARAH:"Ts. SUHAILAH BINTI SAMAT",GRED:"DH10",JABATAN:"JKPK",PROGRAM:"DPC",JUMLAH_JAM_MENGAJAR:0,BILANGAN_KELAS_UTAMA:0},
+  // ── JKPK / DEI (20 pensyarah) ──
+  {NAMA_PENSYARAH:"NORMAZITA BINTI MAT ALI",GRED:"DH10",JABATAN:"JKPK",PROGRAM:"DEI",JUMLAH_JAM_MENGAJAR:19,BILANGAN_KELAS_UTAMA:3},
+  {NAMA_PENSYARAH:"DR. KHAIRUNNISA BINTI A. RAHMAN",GRED:"DH14",JABATAN:"JKPK",PROGRAM:"DEI",JUMLAH_JAM_MENGAJAR:19,BILANGAN_KELAS_UTAMA:4},
+  {NAMA_PENSYARAH:"NORAINI BINTI HARUN",GRED:"DH14",JABATAN:"JKPK",PROGRAM:"DEI",JUMLAH_JAM_MENGAJAR:21,BILANGAN_KELAS_UTAMA:6},
+  {NAMA_PENSYARAH:"SYAHRIL HASRIN BIN SUTAN HAIDIR",GRED:"DH13",JABATAN:"JKPK",PROGRAM:"DEI",JUMLAH_JAM_MENGAJAR:20,BILANGAN_KELAS_UTAMA:4},
+  {NAMA_PENSYARAH:"WIDDEY KHALSOM BINTI EDRIS",GRED:"DH13",JABATAN:"JKPK",PROGRAM:"DEI",JUMLAH_JAM_MENGAJAR:17,BILANGAN_KELAS_UTAMA:2},
+  {NAMA_PENSYARAH:"TS. MUSTAFA KAMAL BIN SURIF",GRED:"DH13",JABATAN:"JKPK",PROGRAM:"DEI",JUMLAH_JAM_MENGAJAR:20,BILANGAN_KELAS_UTAMA:4},
+  {NAMA_PENSYARAH:"HASYIREEN BINTI ABDUL HALIM",GRED:"DH13",JABATAN:"JKPK",PROGRAM:"DEI",JUMLAH_JAM_MENGAJAR:20,BILANGAN_KELAS_UTAMA:5},
+  {NAMA_PENSYARAH:"MARIA BINTI MANSOR",GRED:"DH13",JABATAN:"JKPK",PROGRAM:"DEI",JUMLAH_JAM_MENGAJAR:21,BILANGAN_KELAS_UTAMA:4},
+  {NAMA_PENSYARAH:"TUAN ROZILAAZAWANI BINTI TUAN MAT",GRED:"DH13",JABATAN:"JKPK",PROGRAM:"DEI",JUMLAH_JAM_MENGAJAR:19,BILANGAN_KELAS_UTAMA:6},
+  {NAMA_PENSYARAH:"KAMAL FIRDAUSI BIN ABD RAZAK",GRED:"DH13",JABATAN:"JKPK",PROGRAM:"DEI",JUMLAH_JAM_MENGAJAR:21,BILANGAN_KELAS_UTAMA:4},
+  {NAMA_PENSYARAH:"TS. NURSAHIZALINA BINTI MOHD SA'AT",GRED:"DH13",JABATAN:"JKPK",PROGRAM:"DEI",JUMLAH_JAM_MENGAJAR:20,BILANGAN_KELAS_UTAMA:4},
+  {NAMA_PENSYARAH:"NUR FADHLINA BINTI AHMAD FUAD",GRED:"DH9",JABATAN:"JKPK",PROGRAM:"DEI",JUMLAH_JAM_MENGAJAR:19,BILANGAN_KELAS_UTAMA:4},
+  {NAMA_PENSYARAH:"ZURAIDAH BINTI MUHAMMAD",GRED:"DH13",JABATAN:"JKPK",PROGRAM:"DEI",JUMLAH_JAM_MENGAJAR:19,BILANGAN_KELAS_UTAMA:4},
+  {NAMA_PENSYARAH:"MOHD AZHAR BIN IBRAHIM",GRED:"DH12",JABATAN:"JKPK",PROGRAM:"DEI",JUMLAH_JAM_MENGAJAR:19,BILANGAN_KELAS_UTAMA:2},
+  {NAMA_PENSYARAH:"TOK CHON BEE",GRED:"DH12",JABATAN:"JKPK",PROGRAM:"DEI",JUMLAH_JAM_MENGAJAR:20,BILANGAN_KELAS_UTAMA:5},
+  {NAMA_PENSYARAH:"KHAIRIL FAZLY BIN BACHOK",GRED:"DH12",JABATAN:"JKPK",PROGRAM:"DEI",JUMLAH_JAM_MENGAJAR:20,BILANGAN_KELAS_UTAMA:5},
+  {NAMA_PENSYARAH:"MOHD KHAIRI BIN KAMARUDIN",GRED:"DH12",JABATAN:"JKPK",PROGRAM:"DEI",JUMLAH_JAM_MENGAJAR:19,BILANGAN_KELAS_UTAMA:5},
+  {NAMA_PENSYARAH:"TS. MOHD ZARILFAIZI BIN MAHYUN",GRED:"DH12",JABATAN:"JKPK",PROGRAM:"DEI",JUMLAH_JAM_MENGAJAR:20,BILANGAN_KELAS_UTAMA:3},
+  {NAMA_PENSYARAH:"MOHD AZKAR BIN SIDIK",GRED:"DH12",JABATAN:"JKPK",PROGRAM:"DEI",JUMLAH_JAM_MENGAJAR:20,BILANGAN_KELAS_UTAMA:3},
+  {NAMA_PENSYARAH:"SAIFUL ANUAR BIN ABD KARIM",GRED:"DH9",JABATAN:"JKPK",PROGRAM:"DEI",JUMLAH_JAM_MENGAJAR:21,BILANGAN_KELAS_UTAMA:5},
+  // ── JTKM / DTM (22 pensyarah) ──
+  {NAMA_PENSYARAH:"Ts.SAZALIANA BINTI SAPIAN",GRED:"DH13",JABATAN:"JTKM",PROGRAM:"DTM",JUMLAH_JAM_MENGAJAR:10,BILANGAN_KELAS_UTAMA:3},
+  {NAMA_PENSYARAH:"MUHAMAD HAFIZUDDIN BIN RAZLI",GRED:"DH10",JABATAN:"JTKM",PROGRAM:"DTM",JUMLAH_JAM_MENGAJAR:25,BILANGAN_KELAS_UTAMA:3},
+  {NAMA_PENSYARAH:"DR. NOR HAIRUL BIN PALAL",GRED:"DH14",JABATAN:"JTKM",PROGRAM:"DTM",JUMLAH_JAM_MENGAJAR:23,BILANGAN_KELAS_UTAMA:4},
+  {NAMA_PENSYARAH:"RAHIMAWATI BINTI ABDUL RAHIM",GRED:"DH12",JABATAN:"JTKM",PROGRAM:"DTM",JUMLAH_JAM_MENGAJAR:24,BILANGAN_KELAS_UTAMA:5},
+  {NAMA_PENSYARAH:"NOR HASHINA BINTI BAHRUDIN",GRED:"DH12",JABATAN:"JTKM",PROGRAM:"DTM",JUMLAH_JAM_MENGAJAR:26,BILANGAN_KELAS_UTAMA:4},
+  {NAMA_PENSYARAH:"KHAIREDZA RAHMI BINTI A.HAMID",GRED:"DH12",JABATAN:"JTKM",PROGRAM:"DTM",JUMLAH_JAM_MENGAJAR:23,BILANGAN_KELAS_UTAMA:2},
+  {NAMA_PENSYARAH:"DR. NOORSABRINA BINTI M SALBI",GRED:"DH12",JABATAN:"JTKM",PROGRAM:"DTM",JUMLAH_JAM_MENGAJAR:26,BILANGAN_KELAS_UTAMA:5},
+  {NAMA_PENSYARAH:"NUR SYAMSINA BINTI AB AZIZ",GRED:"DH12",JABATAN:"JTKM",PROGRAM:"DTM",JUMLAH_JAM_MENGAJAR:26,BILANGAN_KELAS_UTAMA:4},
+  {NAMA_PENSYARAH:"NOR DINA BINTI SAKARIA",GRED:"DH12",JABATAN:"JTKM",PROGRAM:"DTM",JUMLAH_JAM_MENGAJAR:25,BILANGAN_KELAS_UTAMA:4},
+  {NAMA_PENSYARAH:"NUR ATIQAH BINTI ASA'ARI",GRED:"DH10",JABATAN:"JTKM",PROGRAM:"DTM",JUMLAH_JAM_MENGAJAR:26,BILANGAN_KELAS_UTAMA:3},
+  {NAMA_PENSYARAH:"NABILLA HUDA BINTI BAHARUDDIN",GRED:"DH10",JABATAN:"JTKM",PROGRAM:"DTM",JUMLAH_JAM_MENGAJAR:25,BILANGAN_KELAS_UTAMA:4},
+  {NAMA_PENSYARAH:"MUHAMMAD AKMAL BIN JELANI",GRED:"DH12",JABATAN:"JTKM",PROGRAM:"DTM",JUMLAH_JAM_MENGAJAR:25,BILANGAN_KELAS_UTAMA:2},
+  {NAMA_PENSYARAH:"NOR AZIYAN BINTI MOHD NASIR",GRED:"DH10",JABATAN:"JTKM",PROGRAM:"DTM",JUMLAH_JAM_MENGAJAR:25,BILANGAN_KELAS_UTAMA:4},
+  {NAMA_PENSYARAH:"SITI SYAZWANA BINTI MD ISHAK",GRED:"DH10",JABATAN:"JTKM",PROGRAM:"DTM",JUMLAH_JAM_MENGAJAR:25,BILANGAN_KELAS_UTAMA:4},
+  {NAMA_PENSYARAH:"NUR HANIZA BINTI EWANDI JONG",GRED:"DH10",JABATAN:"JTKM",PROGRAM:"DTM",JUMLAH_JAM_MENGAJAR:26,BILANGAN_KELAS_UTAMA:4},
+  {NAMA_PENSYARAH:"NORSHILA BINTI MD ISA",GRED:"DH10",JABATAN:"JTKM",PROGRAM:"DTM",JUMLAH_JAM_MENGAJAR:24,BILANGAN_KELAS_UTAMA:4},
+  {NAMA_PENSYARAH:"NUR HAWA BINTI THAHARUDDIN",GRED:"DH10",JABATAN:"JTKM",PROGRAM:"DTM",JUMLAH_JAM_MENGAJAR:26,BILANGAN_KELAS_UTAMA:4},
+  {NAMA_PENSYARAH:"SEE HUI YONG",GRED:"DH10",JABATAN:"JTKM",PROGRAM:"DTM",JUMLAH_JAM_MENGAJAR:24,BILANGAN_KELAS_UTAMA:4},
+  {NAMA_PENSYARAH:"SITI NORHAZIRAH BINTI RAHIM",GRED:"DH10",JABATAN:"JTKM",PROGRAM:"DTM",JUMLAH_JAM_MENGAJAR:25,BILANGAN_KELAS_UTAMA:3},
+  {NAMA_PENSYARAH:"WAN AHMAD FIKRI BIN WAN AZIZ",GRED:"DH10",JABATAN:"JTKM",PROGRAM:"DTM",JUMLAH_JAM_MENGAJAR:24,BILANGAN_KELAS_UTAMA:3},
+  {NAMA_PENSYARAH:"MOHAMAD AFIFI BIN ISMAIL",GRED:"DH10",JABATAN:"JTKM",PROGRAM:"DTM",JUMLAH_JAM_MENGAJAR:24,BILANGAN_KELAS_UTAMA:3},
+  {NAMA_PENSYARAH:"Ts. RAZ ZARINDA BINTI MOHD RASHID",GRED:"DH10",JABATAN:"JTKM",PROGRAM:"DTM",JUMLAH_JAM_MENGAJAR:23,BILANGAN_KELAS_UTAMA:2},
+  // ── JTKM / DFO (22 pensyarah) ──
+  {NAMA_PENSYARAH:"ChM. JUNAIDI BIN MOHAMAD NASIR",GRED:"DH12",JABATAN:"JTKM",PROGRAM:"DFO",JUMLAH_JAM_MENGAJAR:8,BILANGAN_KELAS_UTAMA:1},
+  {NAMA_PENSYARAH:"Ts. AINA FATHIAH BINTI ZUHAIDI",GRED:"DH12",JABATAN:"JTKM",PROGRAM:"DFO",JUMLAH_JAM_MENGAJAR:13,BILANGAN_KELAS_UTAMA:1},
+  {NAMA_PENSYARAH:"MUHAMAD HISSAMMUDDIN SHAH BIN ZAINAL ABIDIN",GRED:"DH12",JABATAN:"JTKM",PROGRAM:"DFO",JUMLAH_JAM_MENGAJAR:18,BILANGAN_KELAS_UTAMA:4},
+  {NAMA_PENSYARAH:"ChM. DEWI NILAM RUPA'A BINTI RAZALI",GRED:"DH10",JABATAN:"JTKM",PROGRAM:"DFO",JUMLAH_JAM_MENGAJAR:20,BILANGAN_KELAS_UTAMA:3},
+  {NAMA_PENSYARAH:"JUNAINAH BINTI MUSTAPHA",GRED:"DH12",JABATAN:"JTKM",PROGRAM:"DFO",JUMLAH_JAM_MENGAJAR:18,BILANGAN_KELAS_UTAMA:4},
+  {NAMA_PENSYARAH:"NOR AZILA BINTI MASKAM",GRED:"DH12",JABATAN:"JTKM",PROGRAM:"DFO",JUMLAH_JAM_MENGAJAR:21,BILANGAN_KELAS_UTAMA:4},
+  {NAMA_PENSYARAH:"MUHAMMAD HABIBULLAH BIN YAHAYA",GRED:"DH10",JABATAN:"JTKM",PROGRAM:"DFO",JUMLAH_JAM_MENGAJAR:23,BILANGAN_KELAS_UTAMA:5},
+  {NAMA_PENSYARAH:"NOR AZIYAN BINTI MOHD NASIR (DFO)",GRED:"DH10",JABATAN:"JTKM",PROGRAM:"DFO",JUMLAH_JAM_MENGAJAR:21,BILANGAN_KELAS_UTAMA:4},
+  {NAMA_PENSYARAH:"MOHD. ADIL HAKAM BIN OSMAN",GRED:"DH10",JABATAN:"JTKM",PROGRAM:"DFO",JUMLAH_JAM_MENGAJAR:23,BILANGAN_KELAS_UTAMA:5},
+  {NAMA_PENSYARAH:"ChM. MUHAMMAD 'AZIM BIN JAMALUDDIN",GRED:"DH10",JABATAN:"JTKM",PROGRAM:"DFO",JUMLAH_JAM_MENGAJAR:20,BILANGAN_KELAS_UTAMA:4},
+  {NAMA_PENSYARAH:"MUHAMMAD IZWAN BIN NORMAN",GRED:"DH9",JABATAN:"JTKM",PROGRAM:"DFO",JUMLAH_JAM_MENGAJAR:0,BILANGAN_KELAS_UTAMA:0},
+  {NAMA_PENSYARAH:"ATIKAH BINTI MANSOR",GRED:"DH10",JABATAN:"JTKM",PROGRAM:"DFO",JUMLAH_JAM_MENGAJAR:21,BILANGAN_KELAS_UTAMA:4},
+  {NAMA_PENSYARAH:"NURUL ASMAWANIE BINTI RAMLI",GRED:"DH10",JABATAN:"JTKM",PROGRAM:"DFO",JUMLAH_JAM_MENGAJAR:22,BILANGAN_KELAS_UTAMA:5},
+  {NAMA_PENSYARAH:"DR NOORUL JANNAH BINTI ZAINUDDIN",GRED:"DH10",JABATAN:"JTKM",PROGRAM:"DFO",JUMLAH_JAM_MENGAJAR:20,BILANGAN_KELAS_UTAMA:4},
+  {NAMA_PENSYARAH:"SHARIFAHTUN NAJWA BINTI SHAHIDAN",GRED:"DH9",JABATAN:"JTKM",PROGRAM:"DFO",JUMLAH_JAM_MENGAJAR:21,BILANGAN_KELAS_UTAMA:5},
+  {NAMA_PENSYARAH:"MARATUN NAJIHA BINTI ABU TAHARI",GRED:"DH9",JABATAN:"JTKM",PROGRAM:"DFO",JUMLAH_JAM_MENGAJAR:17,BILANGAN_KELAS_UTAMA:3},
+  {NAMA_PENSYARAH:"ChM. SITI RASYIDAH BINTI SAPIE",GRED:"DH9",JABATAN:"JTKM",PROGRAM:"DFO",JUMLAH_JAM_MENGAJAR:21,BILANGAN_KELAS_UTAMA:4},
+  {NAMA_PENSYARAH:"MUHAMMAD IZWAN BIN ISHAK",GRED:"DH10",JABATAN:"JTKM",PROGRAM:"DFO",JUMLAH_JAM_MENGAJAR:20,BILANGAN_KELAS_UTAMA:4},
+  {NAMA_PENSYARAH:"NUZUL ARDZAN BIN MOKHTAR",GRED:"DH9",JABATAN:"JTKM",PROGRAM:"DFO",JUMLAH_JAM_MENGAJAR:21,BILANGAN_KELAS_UTAMA:2},
+  {NAMA_PENSYARAH:"MUHAMMAD AZRI IZANI BIN MOHAMAD HALIM",GRED:"DH9",JABATAN:"JTKM",PROGRAM:"DFO",JUMLAH_JAM_MENGAJAR:22,BILANGAN_KELAS_UTAMA:3},
+  {NAMA_PENSYARAH:"MUHAMMAD ZAKWAN BIN ZAINE",GRED:"DH10",JABATAN:"JTKM",PROGRAM:"DFO",JUMLAH_JAM_MENGAJAR:22,BILANGAN_KELAS_UTAMA:2},
+  {NAMA_PENSYARAH:"MOHD FIKHRI BIN NOR AZMAN",GRED:"DH10",JABATAN:"JTKM",PROGRAM:"DFO",JUMLAH_JAM_MENGAJAR:21,BILANGAN_KELAS_UTAMA:1},
+  // ── JMSK (19 pensyarah) ──
+  {NAMA_PENSYARAH:"HAIRULAMRI BIN KASIM",GRED:"DH12",JABATAN:"JMSK",PROGRAM:"N/A",JUMLAH_JAM_MENGAJAR:19,BILANGAN_KELAS_UTAMA:4},
+  {NAMA_PENSYARAH:"FAZLINA BINTI YUNUS",GRED:"DH10",JABATAN:"JMSK",PROGRAM:"N/A",JUMLAH_JAM_MENGAJAR:19,BILANGAN_KELAS_UTAMA:5},
+  {NAMA_PENSYARAH:"CHIANG YOKE YEN",GRED:"DH10",JABATAN:"JMSK",PROGRAM:"N/A",JUMLAH_JAM_MENGAJAR:23,BILANGAN_KELAS_UTAMA:6},
+  {NAMA_PENSYARAH:"NURFADZLINA BINTI MOHD ROZI",GRED:"DH10",JABATAN:"JMSK",PROGRAM:"N/A",JUMLAH_JAM_MENGAJAR:16,BILANGAN_KELAS_UTAMA:4},
+  {NAMA_PENSYARAH:"ASIAH BINTI IBRAHIM",GRED:"DH13",JABATAN:"JMSK",PROGRAM:"N/A",JUMLAH_JAM_MENGAJAR:19,BILANGAN_KELAS_UTAMA:5},
+  {NAMA_PENSYARAH:"HAFIZI BIN MUSTAFA",GRED:"DH10",JABATAN:"JMSK",PROGRAM:"N/A",JUMLAH_JAM_MENGAJAR:22,BILANGAN_KELAS_UTAMA:6},
+  {NAMA_PENSYARAH:"SUHAILI BINTI ESMON",GRED:"DH12",JABATAN:"JMSK",PROGRAM:"N/A",JUMLAH_JAM_MENGAJAR:18,BILANGAN_KELAS_UTAMA:5},
+  {NAMA_PENSYARAH:"ASRI BIN OTHMAN",GRED:"DH12",JABATAN:"JMSK",PROGRAM:"N/A",JUMLAH_JAM_MENGAJAR:18,BILANGAN_KELAS_UTAMA:5},
+  {NAMA_PENSYARAH:"JULIYANA BINTI HUSSIN",GRED:"DH12",JABATAN:"JMSK",PROGRAM:"N/A",JUMLAH_JAM_MENGAJAR:19,BILANGAN_KELAS_UTAMA:5},
+  {NAMA_PENSYARAH:"MOHD SYAKIRIN BIN ISMAIL",GRED:"DH6",JABATAN:"JMSK",PROGRAM:"N/A",JUMLAH_JAM_MENGAJAR:18,BILANGAN_KELAS_UTAMA:5},
+  {NAMA_PENSYARAH:"NORLIDA BINTI SHAARI",GRED:"DH9",JABATAN:"JMSK",PROGRAM:"N/A",JUMLAH_JAM_MENGAJAR:20,BILANGAN_KELAS_UTAMA:5},
+  {NAMA_PENSYARAH:"HAZWANI BINTI BACHOK",GRED:"DH9",JABATAN:"JMSK",PROGRAM:"N/A",JUMLAH_JAM_MENGAJAR:19,BILANGAN_KELAS_UTAMA:5},
+  {NAMA_PENSYARAH:"RAZZATUL IZA ZURITA BINTI RASALLI",GRED:"DH13",JABATAN:"JMSK",PROGRAM:"N/A",JUMLAH_JAM_MENGAJAR:17,BILANGAN_KELAS_UTAMA:5},
+  {NAMA_PENSYARAH:"Ts. RASHIDAH BINTI LIP",GRED:"DH12",JABATAN:"JMSK",PROGRAM:"N/A",JUMLAH_JAM_MENGAJAR:18,BILANGAN_KELAS_UTAMA:5},
+  {NAMA_PENSYARAH:"NURAINI BINTI MOHD RASHID",GRED:"DH12",JABATAN:"JMSK",PROGRAM:"N/A",JUMLAH_JAM_MENGAJAR:20,BILANGAN_KELAS_UTAMA:7},
+  {NAMA_PENSYARAH:"NORAZILA BINTI SAMURI",GRED:"DH13",JABATAN:"JMSK",PROGRAM:"N/A",JUMLAH_JAM_MENGAJAR:17,BILANGAN_KELAS_UTAMA:5},
+  {NAMA_PENSYARAH:"TS.DR. NOR DAMSYIK BINTI MOHD SAID",GRED:"DH13",JABATAN:"JMSK",PROGRAM:"N/A",JUMLAH_JAM_MENGAJAR:18,BILANGAN_KELAS_UTAMA:7},
+  {NAMA_PENSYARAH:"NORAZIDA BINTI ALI",GRED:"DH13",JABATAN:"JMSK",PROGRAM:"N/A",JUMLAH_JAM_MENGAJAR:20,BILANGAN_KELAS_UTAMA:5},
+  {NAMA_PENSYARAH:"DR MUHAMAD NAZRI BIN ABU SHAH",GRED:"DH9",JABATAN:"JMSK",PROGRAM:"N/A",JUMLAH_JAM_MENGAJAR:18,BILANGAN_KELAS_UTAMA:4},
+  // ── JPA (10 pensyarah) ──
+  {NAMA_PENSYARAH:"MOHD FIRDAUS BIN MAMAT JUNOH",GRED:"DH12",JABATAN:"JPA",PROGRAM:"N/A",JUMLAH_JAM_MENGAJAR:18,BILANGAN_KELAS_UTAMA:6},
+  {NAMA_PENSYARAH:"FARHA BINTI MUHAMMAD",GRED:"DH10",JABATAN:"JPA",PROGRAM:"N/A",JUMLAH_JAM_MENGAJAR:11,BILANGAN_KELAS_UTAMA:8},
+  {NAMA_PENSYARAH:"AS NURIEEN NAJMA BINTI AHMAD",GRED:"DH12",JABATAN:"JPA",PROGRAM:"N/A",JUMLAH_JAM_MENGAJAR:18,BILANGAN_KELAS_UTAMA:12},
+  {NAMA_PENSYARAH:"MOHD TORIQ BIN HJ SULAIMAN",GRED:"DH12",JABATAN:"JPA",PROGRAM:"N/A",JUMLAH_JAM_MENGAJAR:17,BILANGAN_KELAS_UTAMA:12},
+  {NAMA_PENSYARAH:"AKHMALIAH BINTI ABDUL RAHIM",GRED:"DH12",JABATAN:"JPA",PROGRAM:"N/A",JUMLAH_JAM_MENGAJAR:16,BILANGAN_KELAS_UTAMA:6},
+  {NAMA_PENSYARAH:"WIRDAWATI BINTI AHMAD @ MOHD ISA",GRED:"DH12",JABATAN:"JPA",PROGRAM:"N/A",JUMLAH_JAM_MENGAJAR:22,BILANGAN_KELAS_UTAMA:8},
+  {NAMA_PENSYARAH:"WAN AFRA BINTI IBRAHIM",GRED:"DH12",JABATAN:"JPA",PROGRAM:"N/A",JUMLAH_JAM_MENGAJAR:17,BILANGAN_KELAS_UTAMA:7},
+  {NAMA_PENSYARAH:"ADLEENA ADHA BINTI ABDUL MUA'AIN",GRED:"DH12",JABATAN:"JPA",PROGRAM:"N/A",JUMLAH_JAM_MENGAJAR:21,BILANGAN_KELAS_UTAMA:9},
+  {NAMA_PENSYARAH:"NUR NADIRAH BINTI NORDIN",GRED:"DH10",JABATAN:"JPA",PROGRAM:"N/A",JUMLAH_JAM_MENGAJAR:24,BILANGAN_KELAS_UTAMA:8},
+  {NAMA_PENSYARAH:"NUR FATIHAH BINTI NORIZAM",GRED:"DH9",JABATAN:"JPA",PROGRAM:"N/A",JUMLAH_JAM_MENGAJAR:18,BILANGAN_KELAS_UTAMA:8},
+];
+
+let semuaData = [...dataSampel];
+let dataTapis = [...semuaData];
+let carta = {};
+let isihLajur = '', isihArah = 1;
+
+const WARNA = ['#f5e642','#00e5ff','#ff2d55','#39ff14','#ff9f00','#b44fff','#00ffb3','#ff6b35','#7df9ff','#ff6ec7'];
+
+// ══ INIT ══
+window.onload = function() {
+  document.getElementById('tarikh-kemaskini').textContent =
+    new Date().toLocaleDateString('ms-MY', {day:'2-digit', month:'long', year:'numeric'});
+  mulakanDashboard();
+};
+
+function mulakanDashboard() { janaDropdown(); kemaskiniSemua(); }
+
+// ══ HELPERS DATA ══
+// Carta & KPI: abaikan jam=0
+function dataAktif() { return dataTapis.filter(d => d.JUMLAH_JAM_MENGAJAR > 0); }
+// Carta Program: abaikan jam=0 DAN program=N/A
+function dataProgram() { return dataAktif().filter(d => d.PROGRAM !== 'N/A'); }
+// Jadual: semua rekod
+function dataJadual() { return dataTapis; }
+
+function jumlahKunci(arr, kunci) { return arr.reduce((s, d) => s + (d[kunci] || 0), 0); }
+function unik(arr, kunci) { return [...new Set(arr.map(d => d[kunci]).filter(Boolean))].sort(); }
+function dW(n) { return Array.from({length: n}, (_, i) => WARNA[i % WARNA.length]); }
+
+// ══ RALAT ══
+function tunjukRalat(m) {
+  document.getElementById('alertMesej').textContent = m;
+  document.getElementById('alertBox').style.display = 'block';
+  window.scrollTo({top:0, behavior:'smooth'});
+}
+
+// ══ UPLOAD ══
+function terimaDrop(e) {
+  e.preventDefault();
+  document.getElementById('uploadZone').classList.remove('dragover');
+  if (e.dataTransfer.files[0]) prosesFailUpload(e.dataTransfer.files[0]);
+}
+function muatNaikFail(e) {
+  const f = e.target.files[0]; if (!f) return;
+  prosesFailUpload(f); e.target.value = '';
+}
+function prosesFailUpload(f) {
+  const n = f.name.toLowerCase();
+  if (n.endsWith('.xlsx') || n.endsWith('.xls')) bacaExcel(f);
+  else if (n.endsWith('.csv')) bacaCSV(f);
+  else tunjukRalat('Format tidak disokong. Guna .xlsx atau .csv');
+}
+function bacaExcel(f) {
+  const r = new FileReader();
+  r.onload = function(e) {
+    try {
+      const buku = XLSX.read(new Uint8Array(e.target.result), {type:'array'});
+      const helaian = buku.Sheets[buku.SheetNames[0]];
+      const raw = XLSX.utils.sheet_to_json(helaian, {header:1, defval:''});
+      let rowH = -1;
+      for (let i = 0; i < Math.min(10, raw.length); i++) {
+        if (raw[i].map(v => String(v).toUpperCase().trim()).some(v => v.includes('NAMA') && v.includes('PENSYARAH'))) { rowH = i; break; }
+      }
+      sahkanDanMuat(XLSX.utils.sheet_to_json(helaian, {range: rowH >= 0 ? rowH : 0, defval:''}), f.name);
+    } catch(err) { tunjukRalat('Ralat Excel: ' + err.message); }
+  };
+  r.readAsArrayBuffer(f);
+}
+function bacaCSV(f) {
+  Papa.parse(f, {
+    header:true, skipEmptyLines:true, dynamicTyping:true,
+    complete: r => sahkanDanMuat(r.data, f.name),
+    error: () => tunjukRalat('Ralat membaca CSV.')
+  });
+}
+function normK(obj) { const o={}; Object.keys(obj).forEach(k=>{o[k.trim().toUpperCase()]=obj[k];}); return o; }
+function sahkanDanMuat(data, namaFail) {
+  if (!data || data.length === 0) { tunjukRalat('Fail kosong.'); return; }
+  const dN = data.map(normK);
+  const perlu = ['NAMA_PENSYARAH','JABATAN','PROGRAM','JUMLAH_JAM_MENGAJAR','BILANGAN_KELAS_UTAMA'];
+  const tiada = perlu.filter(l => !Object.keys(dN[0]||{}).includes(l));
+  if (tiada.length > 0) { tunjukRalat('Lajur yang tiada: ' + tiada.join(', ')); return; }
+  semuaData = dN.filter(d => d.NAMA_PENSYARAH && String(d.NAMA_PENSYARAH).trim() !== '').map(d => ({
+    NAMA_PENSYARAH: String(d.NAMA_PENSYARAH).trim(),
+    GRED: String(d.GRED||'').trim(),
+    JABATAN: String(d.JABATAN||'').trim(),
+    PROGRAM: String(d.PROGRAM||'').trim(),
+    JUMLAH_JAM_MENGAJAR: parseFloat(d.JUMLAH_JAM_MENGAJAR)||0,
+    BILANGAN_KELAS_UTAMA: parseFloat(d.BILANGAN_KELAS_UTAMA)||0,
+  }));
+  if (semuaData.length === 0) { tunjukRalat('Tiada data yang sah.'); return; }
+  document.getElementById('alertBox').style.display = 'none';
+  document.getElementById('namaFail').textContent = '✅ ' + namaFail + ' (' + semuaData.length + ' rekod)';
+  document.getElementById('badgeSesi').textContent = namaFail.replace(/\.[^.]+$/,'');
+  mulakanDashboard();
+}
+
+// ══ DROPDOWN ══
+function janaDropdown() {
+  const isi = (id, list, simpan) => {
+    document.getElementById(id).innerHTML =
+      '<option value="">Semua ' + id.replace('filter','') + '</option>' +
+      list.map(v => `<option value="${v}" ${v===simpan?'selected':''}>${v}</option>`).join('');
+  };
+  isi('filterJabatan', unik(semuaData,'JABATAN'), document.getElementById('filterJabatan').value);
+  isi('filterProgram', unik(semuaData,'PROGRAM'), document.getElementById('filterProgram').value);
+  isi('filterGred',    unik(semuaData,'GRED'),    document.getElementById('filterGred').value);
+}
+function setSemulaFilter() {
+  ['filterJabatan','filterProgram','filterGred'].forEach(id => document.getElementById(id).value='');
+  kemaskiniSemua();
+}
+
+// ══ TAPIS ══
+function tapisData() {
+  const j=document.getElementById('filterJabatan').value;
+  const p=document.getElementById('filterProgram').value;
+  const g=document.getElementById('filterGred').value;
+  dataTapis = semuaData.filter(d => (!j||d.JABATAN===j) && (!p||d.PROGRAM===p) && (!g||d.GRED===g));
+}
+
+// ══ KEMASKINI SEMUA ══
+function kemaskiniSemua() {
+  tapisData();
+  kemaskiniKPI();
+  buatBarKategori(); buatDonutKategori();
+  buatStackedKategori(); buatGroupedKategori();
+  buatPurataJam(); buatPurataKelas();
+  buatBarPensyarah();
+  kemaskiniJadual();
+}
+
+// ══ FUNGSI KATEGORI BEBAN ══
+function kategoriBeban(jam) {
+  if (jam < 16)  return 'Beban Rendah';
+  if (jam === 16) return 'Penanda Aras';
+  if (jam <= 18) return 'Beban Tinggi';
+  return 'Beban Kritikal';
+}
+function warnaKategori(kat) {
+  if (kat === 'Beban Rendah')  return '#39ff14';
+  if (kat === 'Penanda Aras')  return '#f5e642';
+  if (kat === 'Beban Tinggi')  return '#ff9f00';
+  return '#ff2d55';
+}
+function badgeKelas(kat) {
+  if (kat === 'Beban Rendah')  return 'b-rendah';
+  if (kat === 'Penanda Aras')  return 'b-aras';
+  if (kat === 'Beban Tinggi')  return 'b-tinggi';
+  return 'b-kritikal';
+}
+const SENARAI_KAT = ['Beban Rendah','Penanda Aras','Beban Tinggi','Beban Kritikal'];
+
+// ══ KPI — guna dataAktif() + kategori ══
+function kemaskiniKPI() {
+  const da  = dataAktif();
+  const tot = da.length;
+  document.getElementById('kpi-pensyarah').textContent = new Set(da.map(d=>d.NAMA_PENSYARAH)).size;
+  document.getElementById('kpi-jabatan').textContent   = new Set(da.map(d=>d.JABATAN)).size;
+  // KPI Kategori
+  SENARAI_KAT.forEach(kat => {
+    const bil = da.filter(d=>kategoriBeban(d.JUMLAH_JAM_MENGAJAR)===kat).length;
+    const pct = tot>0 ? ((bil/tot)*100).toFixed(1) : '0';
+    const idMap = {'Beban Rendah':'rendah','Penanda Aras':'aras','Beban Tinggi':'tinggi','Beban Kritikal':'kritikal'};
+    const id = idMap[kat];
+    document.getElementById('kpi-'+id).textContent = bil;
+    document.getElementById('kpi-'+id+'-pct').textContent =
+      ({'Beban Rendah':'Beban Rendah (<16 jam)','Penanda Aras':'Penanda Aras (16 jam)','Beban Tinggi':'Beban Tinggi (17–18 jam)','Beban Kritikal':'Beban Kritikal (>18 jam)'}[kat]) +
+      ' — ' + pct + '%';
+  });
+}
+
+// ══ KONFIGURASI CARTA ══
+function cfgAxis() {
+  return {
+    x: { ticks:{color:'#888',font:{size:10}}, grid:{color:'#1a1a1a'} },
+    y: { ticks:{color:'#888',font:{size:10}}, grid:{color:'#1a1a1a'}, beginAtZero:true }
+  };
+}
+function musnah(k) { if (carta[k]) { carta[k].destroy(); delete carta[k]; } }
+
+// ══ CARTA 1: BAR JAM PER JABATAN ══
+function buatBarJabatan() {
+  musnah('barJab');
+  const da = dataAktif();
+  const jab = unik(da,'JABATAN');
+  const nil = jab.map(j => jumlahKunci(da.filter(d=>d.JABATAN===j),'JUMLAH_JAM_MENGAJAR'));
+  const tot = nil.reduce((a,b)=>a+b,0);
+  const pct = nil.map(v=>tot>0?((v/tot)*100).toFixed(1):'0');
+  carta.barJab = new Chart(document.getElementById('cartaBarJabatan'), {
+    type:'bar', data:{ labels:jab, datasets:[{data:nil, backgroundColor:dW(jab.length), borderRadius:7, label:'Jam'}] },
+    options:{ responsive:true, plugins:{
+      legend:{display:false},
+      datalabels:{display:true,anchor:'end',align:'top',formatter:(v,c)=>v+'\n('+pct[c.dataIndex]+'%)',font:{size:9,weight:'bold'},color:'#ccc'},
+      tooltip:{callbacks:{label:(c)=>' '+c.raw+' jam ('+pct[c.dataIndex]+'%)'}}
+    }, scales:{...cfgAxis(), y:{...cfgAxis().y, title:{display:true,text:'Jam Mengajar',color:'#555'}}} }
+  });
+}
+
+// ══ CARTA 2: BAR KELAS PER JABATAN ══
+function buatBarKelas() {
+  musnah('barKel');
+  const da = dataAktif();
+  const jab = unik(da,'JABATAN');
+  const nil = jab.map(j => jumlahKunci(da.filter(d=>d.JABATAN===j),'BILANGAN_KELAS_UTAMA'));
+  const tot = nil.reduce((a,b)=>a+b,0);
+  const pct = nil.map(v=>tot>0?((v/tot)*100).toFixed(1):'0');
+  carta.barKel = new Chart(document.getElementById('cartaBarKelas'), {
+    type:'bar', data:{ labels:jab, datasets:[{data:nil, backgroundColor:[...dW(jab.length)].reverse(), borderRadius:7, label:'Kelas'}] },
+    options:{ responsive:true, plugins:{
+      legend:{display:false},
+      datalabels:{display:true,anchor:'end',align:'top',formatter:(v,c)=>v+'\n('+pct[c.dataIndex]+'%)',font:{size:9,weight:'bold'},color:'#ccc'},
+      tooltip:{callbacks:{label:(c)=>' '+c.raw+' kelas ('+pct[c.dataIndex]+'%)'}}
+    }, scales:{...cfgAxis(), y:{...cfgAxis().y, title:{display:true,text:'Bil. Kelas',color:'#555'}}} }
+  });
+}
+
+// ══ CARTA 3: DONUT JAM PER PROGRAM ══
+function buatPaiJam() {
+  musnah('paiJam');
+  const dp = dataProgram();
+  const prog = unik(dp,'PROGRAM');
+  const nil  = prog.map(p => jumlahKunci(dp.filter(d=>d.PROGRAM===p),'JUMLAH_JAM_MENGAJAR'));
+  carta.paiJam = new Chart(document.getElementById('cartaPaiJam'), {
+    type:'doughnut',
+    data:{ labels:prog, datasets:[{data:nil, backgroundColor:dW(prog.length), borderWidth:2, borderColor:'#111'}] },
+    options:{ responsive:true, plugins:{
+      legend:{position:'right',labels:{color:'#aaa',font:{size:10},boxWidth:12,padding:8}},
+      datalabels:{display:true,formatter:(v,c)=>{const t=c.dataset.data.reduce((a,b)=>a+b,0);return t>0?((v/t)*100).toFixed(1)+'%':'';},font:{size:11,weight:'bold'},color:'#fff'},
+      tooltip:{callbacks:{label:(c)=>{const t=c.dataset.data.reduce((a,b)=>a+b,0);return ' '+c.raw+' jam ('+(t>0?((c.raw/t)*100).toFixed(1):0)+'%)'}}}
+    }}
+  });
+}
+
+// ══ CARTA 4: DONUT KELAS PER PROGRAM ══
+function buatPaiKelas() {
+  musnah('paiKel');
+  const dp = dataProgram();
+  const prog = unik(dp,'PROGRAM');
+  const nil  = prog.map(p => jumlahKunci(dp.filter(d=>d.PROGRAM===p),'BILANGAN_KELAS_UTAMA'));
+  const w2 = ['#ff2d55','#ff9f00','#b44fff','#00e5ff','#39ff14','#ff6b35'];
+  carta.paiKel = new Chart(document.getElementById('cartaPaiKelas'), {
+    type:'doughnut',
+    data:{ labels:prog, datasets:[{data:nil, backgroundColor:w2, borderWidth:2, borderColor:'#111'}] },
+    options:{ responsive:true, plugins:{
+      legend:{position:'right',labels:{color:'#aaa',font:{size:10},boxWidth:12,padding:8}},
+      datalabels:{display:true,formatter:(v,c)=>{const t=c.dataset.data.reduce((a,b)=>a+b,0);return t>0?((v/t)*100).toFixed(1)+'%':'';},font:{size:11,weight:'bold'},color:'#fff'},
+      tooltip:{callbacks:{label:(c)=>{const t=c.dataset.data.reduce((a,b)=>a+b,0);return ' '+c.raw+' kelas ('+(t>0?((c.raw/t)*100).toFixed(1):0)+'%)'}}}
+    }}
+  });
+}
+
+// ══ CARTA 5: GROUPED BAR PERBANDINGAN ══
+function buatPerbandingan() {
+  musnah('perb');
+  const da = dataAktif();
+  const jab = unik(da,'JABATAN');
+  const jam   = jab.map(j => jumlahKunci(da.filter(d=>d.JABATAN===j),'JUMLAH_JAM_MENGAJAR'));
+  const kelas = jab.map(j => jumlahKunci(da.filter(d=>d.JABATAN===j),'BILANGAN_KELAS_UTAMA'));
+  carta.perb = new Chart(document.getElementById('cartaPerbandingan'), {
+    type:'bar',
+    data:{ labels:jab, datasets:[
+      {label:'Jumlah Jam Mengajar', data:jam,   backgroundColor:'rgba(245,230,66,0.75)', borderColor:'#f5e642', borderWidth:1, borderRadius:5},
+      {label:'Bilangan Kelas Utama',data:kelas, backgroundColor:'rgba(0,229,255,0.65)',  borderColor:'#00e5ff', borderWidth:1, borderRadius:5}
+    ]},
+    options:{ responsive:true, plugins:{
+      legend:{labels:{color:'#bbb',font:{size:11},boxWidth:14}},
+      datalabels:{display:true,anchor:'end',align:'top',formatter:v=>v,font:{size:9,weight:'bold'},color:'#ddd'},
+      tooltip:{mode:'index',intersect:false}
+    }, scales:{...cfgAxis(), y:{...cfgAxis().y, title:{display:true,text:'Nilai',color:'#555'}}} }
+  });
+}
+
+// ══ CARTA 6: PURATA JAM PER JABATAN ══
+function buatPurataJam() {
+  musnah('purJam');
+  const da = dataAktif();
+  const jab = unik(da,'JABATAN');
+  const avg = jab.map(j=>{const a=da.filter(d=>d.JABATAN===j).map(d=>d.JUMLAH_JAM_MENGAJAR); return a.length?+(a.reduce((s,v)=>s+v,0)/a.length).toFixed(1):0;});
+  carta.purJam = new Chart(document.getElementById('cartaPurataJam'), {
+    type:'bar', data:{ labels:jab, datasets:[{data:avg, backgroundColor:'rgba(57,255,20,0.65)', borderColor:'#39ff14', borderWidth:1, borderRadius:7, label:'Purata Jam'}] },
+    options:{ responsive:true, plugins:{
+      legend:{display:false},
+      datalabels:{display:true,anchor:'end',align:'top',formatter:v=>v+' jam',font:{size:9,weight:'bold'},color:'#39ff14'},
+      tooltip:{callbacks:{label:(c)=>' Purata: '+c.raw+' jam/pensyarah'}}
+    }, scales:{...cfgAxis(), y:{...cfgAxis().y, title:{display:true,text:'Purata Jam',color:'#555'}}} }
+  });
+}
+
+// ══ CARTA 7: PURATA KELAS PER JABATAN ══
+function buatPurataKelas() {
+  musnah('purKel');
+  const da = dataAktif();
+  const jab = unik(da,'JABATAN');
+  const avg = jab.map(j=>{const a=da.filter(d=>d.JABATAN===j).map(d=>d.BILANGAN_KELAS_UTAMA); return a.length?+(a.reduce((s,v)=>s+v,0)/a.length).toFixed(1):0;});
+  carta.purKel = new Chart(document.getElementById('cartaPurataKelas'), {
+    type:'bar', data:{ labels:jab, datasets:[{data:avg, backgroundColor:'rgba(245,230,66,0.65)', borderColor:'#f5e642', borderWidth:1, borderRadius:7, label:'Purata Kelas'}] },
+    options:{ responsive:true, plugins:{
+      legend:{display:false},
+      datalabels:{display:true,anchor:'end',align:'top',formatter:v=>v+' kelas',font:{size:9,weight:'bold'},color:'#f5e642'},
+      tooltip:{callbacks:{label:(c)=>' Purata: '+c.raw+' kelas/pensyarah'}}
+    }, scales:{...cfgAxis(), y:{...cfgAxis().y, title:{display:true,text:'Purata Kelas',color:'#555'}}} }
+  });
+}
+
+// ══ CARTA 8: BAR MENDATAR PENSYARAH ══
+function buatBarPensyarah() {
+  musnah('barP');
+  const da = dataAktif().sort((a,b)=>b.JUMLAH_JAM_MENGAJAR-a.JUMLAH_JAM_MENGAJAR);
+  const nama = da.map(d=>d.NAMA_PENSYARAH);
+  const jam  = da.map(d=>d.JUMLAH_JAM_MENGAJAR);
+  const tot  = jam.reduce((a,b)=>a+b,0);
+  const pct  = jam.map(v=>tot>0?((v/tot)*100).toFixed(1):'0');
+  carta.barP = new Chart(document.getElementById('cartaBarPensyarah'), {
+    type:'bar', data:{ labels:nama, datasets:[{data:jam, backgroundColor:dW(nama.length), borderRadius:3, label:'Jam'}] },
+    options:{ indexAxis:'y', responsive:true, plugins:{
+      legend:{display:false},
+      datalabels:{display:true,anchor:'end',align:'right',formatter:(v,c)=>v+' ('+pct[c.dataIndex]+'%)',font:{size:8},color:'#bbb'},
+      tooltip:{callbacks:{label:(c)=>' '+c.raw+' jam ('+pct[c.dataIndex]+'%)'}}
+    }, scales:{
+      x:{ticks:{color:'#888',font:{size:9}},grid:{color:'#1a1a1a'},beginAtZero:true,title:{display:true,text:'Jam Mengajar',color:'#555'}},
+      y:{ticks:{color:'#ccc',font:{size:8}},grid:{color:'#131313'}}
+    }}
+  });
+}
+
+// ══ JADUAL ══
+// ══ CARTA KATEGORI: BAR TABURAN ══
+function buatBarKategori() {
+  musnah('barKat');
+  const da  = dataAktif();
+  const bil = SENARAI_KAT.map(k=>da.filter(d=>kategoriBeban(d.JUMLAH_JAM_MENGAJAR)===k).length);
+  const tot = bil.reduce((a,b)=>a+b,0);
+  const pct = bil.map(v=>tot>0?((v/tot)*100).toFixed(1):'0');
+  const warna = SENARAI_KAT.map(k=>warnaKategori(k));
+  carta.barKat = new Chart(document.getElementById('cartaBarKategori'), {
+    type:'bar',
+    data:{ labels:SENARAI_KAT, datasets:[{data:bil, backgroundColor:warna.map(w=>w+'bb'), borderColor:warna, borderWidth:1, borderRadius:7, label:'Pensyarah'}] },
+    options:{ responsive:true, plugins:{
+      legend:{display:false},
+      datalabels:{display:true,anchor:'end',align:'top',formatter:(v,c)=>v+'\n('+pct[c.dataIndex]+'%)',font:{size:10,weight:'bold'},color:'#ddd'},
+      tooltip:{callbacks:{label:(c)=>' '+c.raw+' pensyarah ('+pct[c.dataIndex]+'%)'}}
+    }, scales:{...cfgAxis(), y:{...cfgAxis().y, title:{display:true,text:'Bilangan Pensyarah',color:'#555'}}} }
+  });
+}
+
+// ══ CARTA KATEGORI: DONUT TABURAN ══
+function buatDonutKategori() {
+  musnah('donutKat');
+  const da  = dataAktif();
+  const bil = SENARAI_KAT.map(k=>da.filter(d=>kategoriBeban(d.JUMLAH_JAM_MENGAJAR)===k).length);
+  const warna = SENARAI_KAT.map(k=>warnaKategori(k));
+  carta.donutKat = new Chart(document.getElementById('cartaDonutKategori'), {
+    type:'doughnut',
+    data:{ labels:SENARAI_KAT, datasets:[{data:bil, backgroundColor:warna.map(w=>w+'bb'), borderColor:warna, borderWidth:2}] },
+    options:{ responsive:true, plugins:{
+      legend:{position:'right',labels:{color:'#aaa',font:{size:10},boxWidth:12,padding:8}},
+      datalabels:{display:true,formatter:(v,c)=>{const t=c.dataset.data.reduce((a,b)=>a+b,0);return t>0?((v/t)*100).toFixed(1)+'%':'';},font:{size:11,weight:'bold'},color:'#fff'},
+      tooltip:{callbacks:{label:(c)=>{const t=c.dataset.data.reduce((a,b)=>a+b,0);return ' '+c.raw+' pensyarah ('+(t>0?((c.raw/t)*100).toFixed(1):0)+'%)'}}}
+    }}
+  });
+}
+
+// ══ CARTA STACKED 100%: KATEGORI PER JABATAN ══
+function buatStackedKategori() {
+  musnah('stackKat');
+  const da  = dataAktif();
+  const jab = unik(da,'JABATAN');
+  const warna = SENARAI_KAT.map(k=>warnaKategori(k));
+  const datasets = SENARAI_KAT.map((kat,i)=>({
+    label: kat,
+    data: jab.map(j=>{
+      const dj = da.filter(d=>d.JABATAN===j);
+      const tot = dj.length;
+      const bil = dj.filter(d=>kategoriBeban(d.JUMLAH_JAM_MENGAJAR)===kat).length;
+      return tot>0 ? parseFloat(((bil/tot)*100).toFixed(1)) : 0;
+    }),
+    backgroundColor: warna[i]+'bb',
+    borderColor: warna[i],
+    borderWidth: 1
+  }));
+  carta.stackKat = new Chart(document.getElementById('cartaStackedKategori'), {
+    type:'bar', data:{ labels:jab, datasets },
+    options:{ responsive:true,
+      plugins:{
+        legend:{labels:{color:'#bbb',font:{size:11},boxWidth:14}},
+        datalabels:{display:true,formatter:(v)=>v>0?v.toFixed(1)+'%':'',font:{size:9,weight:'bold'},color:'#fff'},
+        tooltip:{mode:'index',intersect:false,callbacks:{label:(c)=>' '+c.dataset.label+': '+c.raw+'%'}}
+      },
+      scales:{
+        x:{stacked:true,ticks:{color:'#888',font:{size:10}},grid:{color:'#1a1a1a'}},
+        y:{stacked:true,max:100,ticks:{color:'#888',font:{size:10},callback:v=>v+'%'},grid:{color:'#1a1a1a'},
+           title:{display:true,text:'Peratus Pensyarah (%)',color:'#555'}}
+      }
     }
+  });
+}
 
-    checkboxes.forEach(cb => cb.addEventListener('change', updateCount));
+// ══ CARTA GROUPED: BILANGAN KATEGORI PER JABATAN ══
+function buatGroupedKategori() {
+  musnah('grpKat');
+  const da  = dataAktif();
+  const jab = unik(da,'JABATAN');
+  const warna = SENARAI_KAT.map(k=>warnaKategori(k));
+  const datasets = SENARAI_KAT.map((kat,i)=>({
+    label: kat,
+    data: jab.map(j=>da.filter(d=>d.JABATAN===j && kategoriBeban(d.JUMLAH_JAM_MENGAJAR)===kat).length),
+    backgroundColor: warna[i]+'bb',
+    borderColor: warna[i],
+    borderWidth: 1,
+    borderRadius: 5
+  }));
+  carta.grpKat = new Chart(document.getElementById('cartaGroupedKategori'), {
+    type:'bar', data:{ labels:jab, datasets },
+    options:{ responsive:true,
+      plugins:{
+        legend:{labels:{color:'#bbb',font:{size:11},boxWidth:14}},
+        datalabels:{display:true,anchor:'end',align:'top',formatter:v=>v>0?v:'',font:{size:8,weight:'bold'},color:'#ddd'},
+        tooltip:{mode:'index',intersect:false,callbacks:{label:(c)=>' '+c.dataset.label+': '+c.raw+' pensyarah'}}
+      },
+      scales:{
+        x:{ticks:{color:'#888',font:{size:10}},grid:{color:'#1a1a1a'}},
+        y:{beginAtZero:true,ticks:{color:'#888',font:{size:10}},grid:{color:'#1a1a1a'},
+           title:{display:true,text:'Bilangan Pensyarah',color:'#555'}}
+      }
+    }
+  });
+}
 
-    // Set initial count on page load
-    updateCount();
-  </script>
+function isihJadual(lajur) {
+  isihArah = isihLajur===lajur ? isihArah*-1 : 1;
+  isihLajur = lajur;
+  document.querySelectorAll('.sort-icon').forEach(e=>e.classList.remove('active'));
+  const ikon = document.getElementById('sort-'+lajur);
+  if (ikon) ikon.classList.add('active');
+  kemaskiniJadual();
+}
 
+function kemaskiniJadual() {
+  const semua = dataJadual();
+  const aktif = semua.filter(d=>d.JUMLAH_JAM_MENGAJAR>0);
+  const tJam   = jumlahKunci(aktif,'JUMLAH_JAM_MENGAJAR');
+  const tKelas = jumlahKunci(aktif,'BILANGAN_KELAS_UTAMA');
+
+  const peta = {nama:'NAMA_PENSYARAH',gred:'GRED',jabatan:'JABATAN',program:'PROGRAM',jam:'JUMLAH_JAM_MENGAJAR',kelas:'BILANGAN_KELAS_UTAMA'};
+  let disusun = [...semua];
+  if (isihLajur === 'kategori') {
+    const urutan = {'Beban Rendah':1,'Penanda Aras':2,'Beban Tinggi':3,'Beban Kritikal':4};
+    disusun.sort((a,b)=>{
+      const ka = a.JUMLAH_JAM_MENGAJAR>0 ? kategoriBeban(a.JUMLAH_JAM_MENGAJAR) : '';
+      const kb = b.JUMLAH_JAM_MENGAJAR>0 ? kategoriBeban(b.JUMLAH_JAM_MENGAJAR) : '';
+      return ((urutan[ka]||99)-(urutan[kb]||99))*isihArah;
+    });
+  } else if (isihLajur && peta[isihLajur]) {
+    const k = peta[isihLajur];
+    disusun.sort((a,b)=>typeof a[k]==='string'?a[k].localeCompare(b[k])*isihArah:(a[k]-b[k])*isihArah);
+  }
+
+  document.getElementById('jadualBody').innerHTML = disusun.map((d,i)=>{
+    const aktifRow = d.JUMLAH_JAM_MENGAJAR > 0;
+    const kat = aktifRow ? kategoriBeban(d.JUMLAH_JAM_MENGAJAR) : null;
+    const pctJ = aktifRow && tJam>0   ? ((d.JUMLAH_JAM_MENGAJAR/tJam)*100).toFixed(1)   : '—';
+    const pctK = aktifRow && tKelas>0 ? ((d.BILANGAN_KELAS_UTAMA/tKelas)*100).toFixed(1) : '—';
+    const progBadge = d.PROGRAM==='N/A'
+      ? `<span class="b-na">N/A</span>`
+      : `<span class="b-prog">${d.PROGRAM}</span>`;
+    const katBadge = kat
+      ? `<span class="${badgeKelas(kat)}">${kat}</span>`
+      : `<span style="color:#444">—</span>`;
+    return `<tr class="${!aktifRow?'jam-sifar':''}">
+      <td class="text-center" style="color:var(--text-muted)">${i+1}</td>
+      <td>${d.NAMA_PENSYARAH}</td>
+      <td class="text-center"><span class="b-gred">${d.GRED||'-'}</span></td>
+      <td class="text-center"><span class="b-jab">${d.JABATAN}</span></td>
+      <td class="text-center">${progBadge}</td>
+      <td class="text-center" style="color:${aktifRow?'var(--neon-yellow)':'#555'};font-weight:700">${d.JUMLAH_JAM_MENGAJAR}</td>
+      <td class="text-center">${katBadge}</td>
+      <td class="text-center" style="color:${aktifRow?'var(--neon-blue)':'#555'};font-weight:700">${d.BILANGAN_KELAS_UTAMA}</td>
+      <td class="text-center">${aktifRow?`<span class="b-pct">${pctJ}%</span>`:'<span style="color:#444">—</span>'}</td>
+      <td class="text-center">${aktifRow?`<span class="b-pct">${pctK}%</span>`:'<span style="color:#444">—</span>'}</td>
+    </tr>`;
+  }).join('');
+
+  document.getElementById('jadualFoot').innerHTML = `
+    <tr>
+      <td colspan="5" class="text-end" style="color:var(--neon-yellow)">JUMLAH (PENSYARAH AKTIF)</td>
+      <td class="text-center" style="color:var(--neon-yellow)">${tJam}</td>
+      <td colspan="2" class="text-center" style="color:var(--text-muted)">—</td>
+      <td class="text-center" style="color:var(--neon-blue)">${tKelas}</td>
+      <td class="text-center" style="color:var(--neon-green)">100%</td>
+      <td class="text-center" style="color:var(--neon-green)">100%</td>
+    </tr>`;
+
+  document.getElementById('rekod-info').textContent = semua.length + ' rekod (' + aktif.length + ' aktif)';
+}
+</script>
 </body>
 </html>
